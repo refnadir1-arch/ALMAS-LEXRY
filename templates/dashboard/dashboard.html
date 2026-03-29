@@ -1,0 +1,66 @@
+{% extends "dashboard/base.html" %}
+{% load money %}
+
+{% block content %}
+<h1>لوحة التحكم</h1>
+
+<div class="kpi-grid">
+  <div class="kpi-card"><span>إجمالي الطلبات</span><strong>{{ total_orders }}</strong></div>
+  <div class="kpi-card"><span>الإيرادات</span><strong>{{ revenue|dzd }}</strong></div>
+  <div class="kpi-card"><span>قيد المعالجة</span><strong>{{ pending }}</strong></div>
+  <div class="kpi-card"><span>تم التسليم</span><strong>{{ delivered }}</strong></div>
+  <div class="kpi-card"><span>الملغاة</span><strong>{{ canceled }}</strong></div>
+</div>
+
+<div class="dashboard-section">
+  <h2>أحدث الطلبات</h2>
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>الرمز</th>
+        <th>الاسم</th>
+        <th>المنتج</th>
+        <th>الإجمالي</th>
+        <th>الحالة</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in latest_orders %}
+      <tr>
+        <td><a href="{% url 'dashboard_order_detail' order.code %}">{{ order.code }}</a></td>
+        <td>{{ order.full_name }}</td>
+        <td>{{ order.product.name }}</td>
+        <td>{{ order.total_dzd|dzd }}</td>
+        <td>{{ order.get_status_display }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="dashboard-section">
+  <h2>تنبيه مخزون منخفض</h2>
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>المنتج</th>
+        <th>المقاس</th>
+        <th>اللون</th>
+        <th>المخزون</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in low_stock_variants %}
+      <tr>
+        <td>{{ v.product.name }}</td>
+        <td>{{ v.size }}</td>
+        <td>{{ v.color }}</td>
+        <td>{{ v.stock }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">لا يوجد تنبيه حاليًا.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

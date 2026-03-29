@@ -1,0 +1,27 @@
+{% load static %}
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>دخول لوحة التحكم</title>
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body class="dashboard-login-body">
+  <div class="login-card">
+    <h1>دخول لوحة التحكم</h1>
+    <form method="post" class="form">
+      {% csrf_token %}
+      <div class="form-row">
+        <label>اسم المستخدم</label>
+        {{ form.username }}
+      </div>
+      <div class="form-row">
+        <label>كلمة المرور</label>
+        {{ form.password }}
+      </div>
+      <button class="btn-primary" type="submit">دخول</button>
+    </form>
+  </div>
+</body>
+</html>

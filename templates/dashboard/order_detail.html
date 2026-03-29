@@ -1,0 +1,61 @@
+{% extends "dashboard/base.html" %}
+{% load money %}
+
+{% block content %}
+<h1>تفاصيل الطلب {{ order.code }}</h1>
+
+<div class="dashboard-section two-col">
+  <div class="info-card">
+    <h3>بيانات الزبونة</h3>
+    <p><strong>الاسم:</strong> {{ order.full_name }}</p>
+    <p><strong>الهاتف:</strong> {{ order.phone }}</p>
+    <p><strong>الولاية:</strong> {{ order.wilaya_name_ar }}</p>
+    <p><strong>البلدية:</strong> {{ order.commune_name_ar }}</p>
+    <p><strong>ملاحظة الزبونة:</strong> {{ order.customer_note|default:"—" }}</p>
+  </div>
+
+  <div class="info-card">
+    <h3>بيانات المنتج</h3>
+    <p><strong>المنتج:</strong> {{ order.product.name }}</p>
+    <p><strong>المقاس:</strong> {{ order.variant.size }}</p>
+    <p><strong>اللون:</strong> {{ order.variant.color }}</p>
+    <p><strong>الكمية:</strong> {{ order.qty }}</p>
+    <p><strong>السعر:</strong> {{ order.unit_price_dzd|dzd }}</p>
+    <p><strong>الشحن:</strong> {{ order.shipping_fee_dzd|dzd }}</p>
+    <p><strong>الإجمالي:</strong> {{ order.total_dzd|dzd }}</p>
+  </div>
+</div>
+
+<div class="dashboard-section">
+  <h3>تحديث الحالة</h3>
+  <form method="post" class="dash-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn-primary">حفظ التحديث</button>
+  </form>
+</div>
+
+<div class="dashboard-section">
+  <h3>سجل الحالات</h3>
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>الحالة</th>
+        <th>الملاحظة</th>
+        <th>بواسطة</th>
+        <th>الوقت</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in history %}
+      <tr>
+        <td>{{ item.get_status_display }}</td>
+        <td>{{ item.note|default:"—" }}</td>
+        <td>{{ item.changed_by|default:"النظام" }}</td>
+        <td>{{ item.changed_at|date:"Y-m-d H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load money %}
+
+{% block content %}
+<section class="section">
+  <div class="section-head center-head">
+    <h1>المنتجات</h1>
+    <p class="muted">اختاري ما يناسب ذوقك من تشكيلتنا الفاخرة</p>
+  </div>
+
+  <div class="lux-store-layout">
+    <aside class="lux-filter-card">
+      <form method="get" class="lux-form store-filter-form">
+        <div class="lux-form-group">
+          <label for="filter-q">بحث</label>
+          <input id="filter-q" type="text" name="q" value="{{ filters.q }}" placeholder="ابحثي عن منتج" class="lux-input">
+        </div>
+
+        <div class="lux-form-group">
+          <label for="filter-category">القسم</label>
+          <select id="filter-category" name="category" class="lux-input">
+            <option value="">كل الأقسام</option>
+            {% for c in categories %}
+              <option value="{{ c.slug }}" {% if filters.category == c.slug %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="lux-form-group">
+          <label for="filter-size">المقاس</label>
+          <select id="filter-size" name="size" class="lux-input">
+            <option value="">كل المقاسات</option>
+            <option value="XS" {% if filters.size == 'XS' %}selected{% endif %}>XS</option>
+            <option value="S" {% if filters.size == 'S' %}selected{% endif %}>S</option>
+            <option value="M" {% if filters.size == 'M' %}selected{% endif %}>M</option>
+            <option value="L" {% if filters.size == 'L' %}selected{% endif %}>L</option>
+            <option value="XL" {% if filters.size == 'XL' %}selected{% endif %}>XL</option>
+            <option value="XXL" {% if filters.size == 'XXL' %}selected{% endif %}>XXL</option>
+          </select>
+        </div>
+
+        <div class="lux-form-group">
+          <label for="filter-color">اللون</label>
+          <input id="filter-color" type="text" name="color" value="{{ filters.color }}" placeholder="مثال: خمري" class="lux-input">
+        </div>
+
+        <div class="lux-form-group">
+          <label for="filter-sort">الترتيب</label>
+          <select id="filter-sort" name="sort" class="lux-input">
+            <option value="new" {% if filters.sort == 'new' %}selected{% endif %}>الأحدث</option>
+            <option value="best" {% if filters.sort == 'best' %}selected{% endif %}>الأكثر مبيعًا</option>
+            <option value="price_asc" {% if filters.sort == 'price_asc' %}selected{% endif %}>السعر: الأقل</option>
+            <option value="price_desc" {% if filters.sort == 'price_desc' %}selected{% endif %}>السعر: الأعلى</option>
+            <option value="discount" {% if filters.sort == 'discount' %}selected{% endif %}>أعلى تخفيض</option>
+          </select>
+        </div>
+
+        <div class="lux-check-row">
+          <label class="lux-check-label">
+            <input type="checkbox" name="available" value="1" {% if filters.available == '1' %}checked{% endif %}>
+            <span>المتوفر فقط</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full">تطبيق الفلتر</button>
+      </form>
+    </aside>
+
+    <div>
+      <div class="product-grid">
+        {% for p in products %}
+          <div class="product-card luxury-card">
+            <a href="{{ p.get_absolute_url }}">
+              <div class="product-media">
+                {% if p.primary_image %}
+                  <img src="{{ p.primary_image }}" alt="{{ p.name }}" loading="lazy">
+                {% endif %}
+              </div>
+            </a>
+
+            <div class="product-body">
+              <h3><a href="{{ p.get_absolute_url }}">{{ p.name }}</a></h3>
+
+              <div class="product-price">
+                <span class="price-current">{{ p.final_price_dzd|dzd }}</span>
+                {% if p.has_discount %}
+                  <span class="price-old">{{ p.compare_at_price_dzd|dzd }}</span>
+                  <span class="badge">-{{ p.discount_percent }}%</span>
+                {% endif %}
+              </div>
+
+              <a href="{% url 'direct_order' p.id %}" class="btn btn-primary w-full">اضغط للطلب</a>
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty-box">لا توجد منتجات مطابقة حالياً.</div>
+        {% endfor %}
+      </div>
+
+      {% if products.has_other_pages %}
+        <div class="pagination">
+          {% if products.has_previous %}
+            <a href="?page={{ products.previous_page_number }}" class="btn btn-outline">السابق</a>
+          {% endif %}
+
+          <span class="page-indicator">صفحة {{ products.number }} من {{ products.paginator.num_pages }}</span>
+
+          {% if products.has_next %}
+            <a href="?page={{ products.next_page_number }}" class="btn btn-outline">التالي</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

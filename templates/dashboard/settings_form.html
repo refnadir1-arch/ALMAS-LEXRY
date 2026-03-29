@@ -1,0 +1,10 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<h1>إعدادات المتجر</h1>
+<form method="post" class="dash-form">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn-primary">حفظ الإعدادات</button>
+</form>
+{% endblock %}

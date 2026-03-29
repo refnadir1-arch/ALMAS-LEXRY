@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load money %}
+
+{% block content %}
+<section class="section">
+  <div class="success-box">
+    <h1>تم استلام طلبك بنجاح</h1>
+    <p>رمز الطلب الخاص بك:</p>
+    <div class="order-code">{{ order.code }}</div>
+
+    <div class="success-details">
+      <p><strong>المنتج:</strong> {{ order.product.name }}</p>
+      <p><strong>المقاس:</strong> {{ order.variant.size }}</p>
+      <p><strong>اللون:</strong> {{ order.variant.color }}</p>
+      <p><strong>الكمية:</strong> {{ order.qty }}</p>
+      <p><strong>الإجمالي:</strong> {{ order.total_dzd|dzd }}</p>
+      <p><strong>الحالة:</strong> {{ order.get_status_display }}</p>
+    </div>
+
+    <div class="hero-actions">
+      <a href="{% url 'track_order' %}" class="btn btn-primary">تتبع الطلب</a>
+      <a href="{% url 'store' %}" class="btn btn-outline">العودة للمنتجات</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

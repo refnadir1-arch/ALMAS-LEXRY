@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load money %}
+{% load static %}
+
+{% block content %}
+<section class="section">
+  <div class="section-head center-head">
+    <h1>إتمام الطلب</h1>
+    <p class="muted">اختاري المقاس واللون، ثم املئي البيانات لإتمام الطلب</p>
+  </div>
+
+  <div class="lux-order-layout">
+    <div class="lux-product-card">
+      <div class="lux-product-media">
+        {% if product.primary_image %}
+          <img src="{{ product.primary_image }}" alt="{{ product.name }}">
+        {% endif %}
+      </div>
+
+      <div class="lux-product-content">
+        <h2>{{ product.name }}</h2>
+
+        <div class="lux-price-row">
+          <span class="lux-price-current">{{ product.final_price_dzd|dzd }}</span>
+          {% if product.has_discount %}
+            <span class="lux-price-old">{{ product.compare_at_price_dzd|dzd }}</span>
+            <span class="lux-badge discount-badge">-{{ product.discount_percent }}%</span>
+          {% endif %}
+        </div>
+
+        <div class="lux-product-note">
+          الدفع عند الاستلام فقط
+        </div>
+
+        <div class="lux-shipping-box">
+          <div class="ship-row">
+            <span>إلى باب المنزل</span>
+            <strong>{{ shipping_home|dzd }}</strong>
+          </div>
+          <div class="ship-row">
+            <span>إلى مكتب التوصيل</span>
+            <strong>{{ shipping_office|dzd }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lux-form-card">
+      {% if form.non_field_errors %}
+        <div class="error-box">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <form method="post" class="lux-form" id="directOrderForm">
+        {% csrf_token %}
+
+        <div class="lux-form-group">
+          <label>المقاس واللون</label>
+          <select name="variant_id" required class="lux-input">
+            <option value="">اختاري المقاس واللون</option>
+            {% for v in variants %}
+              <option value="{{ v.id }}" {% if form.variant_id.value|stringformat:"s" == v.id|stringformat:"s" %}selected{% endif %} {% if v.stock == 0 %}disabled{% endif %}>
+                {{ v.size }} — {{ v.color }} {% if v.stock > 0 %}(الكمية محدودة){% else %}(غير متوفر){% endif %}
+              </option>
+            {% endfor %}
+          </select>
+          {% for e in form.variant_id.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="lux-inline-grid two-cols">
+          <div class="lux-form-group">
+            <label>الكمية</label>
+            <input type="number" name="qty" min="1" max="5" value="{{ form.qty.value|default:1 }}" required class="lux-input">
+            <small class="muted">الحد الأقصى: 5</small>
+            {% for e in form.qty.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="lux-form-group">
+            <label>نوع التوصيل</label>
+            {{ form.delivery_type }}
+            {% for e in form.delivery_type.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        <div class="lux-form-group">
+          <label>الاسم الكامل</label>
+          {{ form.full_name }}
+          {% for e in form.full_name.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="lux-form-group">
+          <label>رقم الهاتف</label>
+          {{ form.phone }}
+          {% for e in form.phone.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="lux-inline-grid two-cols">
+          <div class="lux-form-group">
+            <label>الولاية</label>
+            {{ form.wilaya_code }}
+            {% for e in form.wilaya_code.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="lux-form-group">
+            <label>البلدية</label>
+            {{ form.commune_name_ar }}
+            {% for e in form.commune_name_ar.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        <div class="lux-form-group">
+          <label>ملاحظة</label>
+          {{ form.customer_note }}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full large-btn">تأكيد الطلب</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load money %}
+
+{% block content %}
+<section class="product-detail-page">
+  <div class="product-detail-grid">
+    <div class="detail-media-column">
+      <div class="product-media large">
+        {% if product.primary_image %}
+          <img src="{{ product.primary_image }}" alt="{{ product.name }}">
+        {% endif %}
+      </div>
+
+      {% if product.video_url %}
+        <div class="video-box">
+          <h3>فيديو المنتج</h3>
+          <div class="video-wrapper">
+            <iframe
+              src="{{ product.video_url }}"
+              title="{{ product.name }}"
+              frameborder="0"
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="detail-info-column">
+      <div class="product-detail-card">
+        <p class="detail-category">{{ product.category.name }}</p>
+        <h1>{{ product.name }}</h1>
+
+        <div class="detail-price-row">
+          <span class="detail-current-price">{{ product.final_price_dzd|dzd }}</span>
+
+          {% if product.has_discount %}
+            <span class="detail-old-price">{{ product.compare_at_price_dzd|dzd }}</span>
+            <span class="lux-badge discount-badge">-{{ product.discount_percent }}%</span>
+          {% endif %}
+        </div>
+
+        <div class="product-description-box">
+          {{ product.description|linebreaks }}
+        </div>
+
+        <div class="detail-meta-box">
+          {% if product.sku %}
+            <div class="meta-row">
+              <span>رمز المنتج</span>
+              <strong>{{ product.sku }}</strong>
+            </div>
+          {% endif %}
+          <div class="meta-row">
+            <span>الدفع</span>
+            <strong>عند الاستلام فقط</strong>
+          </div>
+        </div>
+
+        <div class="variant-showcase">
+          <h3>المقاسات والألوان المتوفرة</h3>
+
+          <div class="variant-badges-grid">
+            {% for v in variants %}
+              <div class="variant-badge-card {% if v.stock > 0 %}available-card{% else %}unavailable-card{% endif %}">
+                <div class="variant-main-line">
+                  <span class="variant-size">{{ v.size }}</span>
+                  <span class="variant-sep">—</span>
+                  <span class="variant-color">{{ v.color }}</span>
+                </div>
+
+                {% if v.stock > 0 %}
+                  <span class="lux-badge limited-badge">الكمية محدودة</span>
+                {% else %}
+                  <span class="lux-badge unavailable-badge">غير متوفر</span>
+                {% endif %}
+              </div>
+            {% empty %}
+              <div class="empty-box">لا توجد خيارات حالياً.</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          <a href="{% url 'direct_order' product.id %}" class="btn btn-primary large-btn">اضغط للطلب</a>
+          <a href="{% url 'store' %}" class="btn btn-outline">العودة إلى المنتجات</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if related %}
+<section class="section">
+  <div class="section-head">
+    <h2>منتجات مشابهة</h2>
+  </div>
+
+  <div class="product-grid">
+    {% for p in related %}
+      <div class="product-card luxury-card">
+        <a href="{{ p.get_absolute_url }}">
+          <div class="product-media">
+            {% if p.primary_image %}
+              <img src="{{ p.primary_image }}" alt="{{ p.name }}" loading="lazy">
+            {% endif %}
+          </div>
+        </a>
+
+        <div class="product-body">
+          <h3><a href="{{ p.get_absolute_url }}">{{ p.name }}</a></h3>
+
+          <div class="product-price">
+            <span class="price-current">{{ p.final_price_dzd|dzd }}</span>
+            {% if p.has_discount %}
+              <span class="price-old">{{ p.compare_at_price_dzd|dzd }}</span>
+              <span class="badge">-{{ p.discount_percent }}%</span>
+            {% endif %}
+          </div>
+
+          <a href="{% url 'direct_order' p.id %}" class="btn btn-primary w-full">اضغط للطلب</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,27 @@
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h3>{{ STORE_SETTINGS.store_name }}</h3>
+      <p class="muted">الدفع عند الاستلام فقط</p>
+      <p class="muted">توصيل إلى باب المنزل أو إلى مكتب التوصيل</p>
+    </div>
+
+    <div>
+      <h4>تواصل</h4>
+      <ul class="footer-list">
+        <li><a href="tel:{{ STORE_SETTINGS.phone }}">{{ STORE_SETTINGS.phone }}</a></li>
+        <li><a href="https://wa.me/213{{ STORE_SETTINGS.whatsapp|slice:'1:' }}" target="_blank" rel="noopener">واتساب</a></li>
+        <li>{{ STORE_SETTINGS.address }}</li>
+      </ul>
+    </div>
+
+    <div>
+      <h4>السياسات</h4>
+      <ul class="footer-list">
+        <li><a href="{% url 'shipping_policy' %}">سياسة الشحن</a></li>
+        <li><a href="{% url 'returns_policy' %}">سياسة الاسترجاع</a></li>
+        <li><a href="{% url 'privacy_policy' %}">سياسة الخصوصية</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,29 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<div class="dash-head">
+  <h1>الأقسام</h1>
+  <a href="{% url 'dashboard_category_create' %}" class="btn-primary">إضافة قسم</a>
+</div>
+
+<table class="dash-table">
+  <thead>
+    <tr>
+      <th>الاسم</th>
+      <th>الرابط</th>
+      <th>الحالة</th>
+      <th>إجراءات</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in categories %}
+    <tr>
+      <td>{{ c.name }}</td>
+      <td>{{ c.slug }}</td>
+      <td>{% if c.is_active %}مفعّل{% else %}معطل{% endif %}</td>
+      <td><a href="{% url 'dashboard_category_edit' c.id %}">تعديل</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

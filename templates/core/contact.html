@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+  <div class="card">
+    <h1>تواصل معنا</h1>
+    <p>الهاتف: <a href="tel:{{ STORE_SETTINGS.phone }}">{{ STORE_SETTINGS.phone }}</a></p>
+    <p>واتساب: <a href="https://wa.me/213{{ STORE_SETTINGS.whatsapp|slice:'1:' }}" target="_blank" rel="noopener">{{ STORE_SETTINGS.whatsapp }}</a></p>
+    <p>العنوان: {{ STORE_SETTINGS.address }}</p>
+  </div>
+</section>
+{% endblock %}

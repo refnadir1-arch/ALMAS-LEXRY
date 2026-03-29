@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load money %}
+
+{% block content %}
+<section class="section">
+  <div class="section-head">
+    <h1>تتبع الطلب</h1>
+  </div>
+
+  <div class="card">
+    <form method="post" class="form">
+      {% csrf_token %}
+      <div class="form-row">
+        <label>رقم الهاتف</label>
+        {{ form.phone }}
+      </div>
+
+      <div class="form-row">
+        <label>رمز الطلب</label>
+        {{ form.code }}
+      </div>
+
+      <button class="btn btn-primary" type="submit">تتبع</button>
+    </form>
+  </div>
+
+  {% if order %}
+    <div class="card mt-24">
+      <h2>تفاصيل الطلب</h2>
+      <div class="order-detail-grid">
+        <p><strong>رمز الطلب:</strong> {{ order.code }}</p>
+        <p><strong>الاسم:</strong> {{ order.full_name }}</p>
+        <p><strong>الهاتف:</strong> {{ order.phone }}</p>
+        <p><strong>المنتج:</strong> {{ order.product.name }}</p>
+        <p><strong>المقاس:</strong> {{ order.variant.size }}</p>
+        <p><strong>اللون:</strong> {{ order.variant.color }}</p>
+        <p><strong>الولاية:</strong> {{ order.wilaya_name_ar }}</p>
+        <p><strong>البلدية:</strong> {{ order.commune_name_ar }}</p>
+        <p><strong>الكمية:</strong> {{ order.qty }}</p>
+        <p><strong>الإجمالي:</strong> {{ order.total_dzd|dzd }}</p>
+        <p><strong>الحالة الحالية:</strong> {{ order.get_status_display }}</p>
+      </div>
+
+      <hr class="separator">
+
+      <h3>سجل الحالة</h3>
+      <div class="timeline">
+        {% for h in history %}
+          <div class="timeline-item">
+            <strong>{{ h.get_status_display }}</strong>
+            <p>{{ h.note }}</p>
+            <span>{{ h.changed_at|date:"Y-m-d H:i" }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% elif request.method == "POST" %}
+    <div class="card mt-24">
+      <p class="muted">لم يتم العثور على الطلب.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

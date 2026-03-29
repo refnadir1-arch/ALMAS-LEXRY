@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static %}
+{% load money %}
+
+{% block content %}
+<section class="hero-full-bg">
+  <div class="hero-overlay">
+    <div class="hero-center-content">
+      <p class="hero-kicker">ALMAS LUXRY</p>
+      <h1>{{ STORE_SETTINGS.hero_title }}</h1>
+      <p class="hero-subtitle">{{ STORE_SETTINGS.hero_subtitle }}</p>
+
+      <div class="hero-actions">
+        <a href="{% url 'store' %}" class="btn btn-primary">اضغط للطلب</a>
+        <a href="{% url 'track_order' %}" class="btn btn-outline">تتبع الطلب</a>
+      </div>
+
+      <div class="hero-badges">
+        <span>الدفع عند الاستلام فقط</span>
+        <span>توصيل إلى باب المنزل أو إلى مكتب التوصيل</span>
+        <span>موديلات أنيقة وفاخرة</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>الأقسام</h2>
+    <a href="{% url 'store' %}" class="section-link">عرض الكل</a>
+  </div>
+
+  <div class="category-grid">
+    {% for category in categories %}
+      <a href="{% url 'store' %}?category={{ category.slug }}" class="category-card">
+        <strong>{{ category.name }}</strong>
+      </a>
+    {% empty %}
+      <div class="empty-box">لا توجد أقسام حالياً.</div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>جديدنا</h2>
+    <a href="{% url 'store' %}?sort=new" class="section-link">عرض المزيد</a>
+  </div>
+
+  <div class="product-grid">
+    {% for p in new_products %}
+      <div class="product-card luxury-card">
+        <a href="{{ p.get_absolute_url }}">
+          <div class="product-media">
+            {% if p.primary_image %}
+              <img src="{{ p.primary_image }}" alt="{{ p.name }}" loading="lazy">
+            {% endif %}
+          </div>
+        </a>
+
+        <div class="product-body">
+          <h3><a href="{{ p.get_absolute_url }}">{{ p.name }}</a></h3>
+
+          <div class="product-price">
+            <span class="price-current">{{ p.final_price_dzd|dzd }}</span>
+            {% if p.has_discount %}
+              <span class="price-old">{{ p.compare_at_price_dzd|dzd }}</span>
+              <span class="badge">-{{ p.discount_percent }}%</span>
+            {% endif %}
+          </div>
+
+          <a href="{% url 'direct_order' p.id %}" class="btn btn-primary w-full">اضغط للطلب</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-box">لا توجد منتجات جديدة حالياً.</div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>الأكثر مبيعًا</h2>
+    <a href="{% url 'store' %}?sort=best" class="section-link">عرض المزيد</a>
+  </div>
+
+  <div class="product-grid">
+    {% for p in best_sellers %}
+      <div class="product-card luxury-card">
+        <a href="{{ p.get_absolute_url }}">
+          <div class="product-media">
+            {% if p.primary_image %}
+              <img src="{{ p.primary_image }}" alt="{{ p.name }}" loading="lazy">
+            {% endif %}
+          </div>
+        </a>
+
+        <div class="product-body">
+          <h3><a href="{{ p.get_absolute_url }}">{{ p.name }}</a></h3>
+
+          <div class="product-price">
+            <span class="price-current">{{ p.final_price_dzd|dzd }}</span>
+            {% if p.has_discount %}
+              <span class="price-old">{{ p.compare_at_price_dzd|dzd }}</span>
+              <span class="badge">-{{ p.discount_percent }}%</span>
+            {% endif %}
+          </div>
+
+          <a href="{% url 'direct_order' p.id %}" class="btn btn-primary w-full">اضغط للطلب</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-box">لا توجد منتجات مميزة حالياً.</div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>آراء الزبونات</h2>
+  </div>
+
+  <div class="review-grid">
+    {% for review in reviews %}
+      <div class="review-card luxury-review">
+        <div class="stars">
+          {% for i in "12345" %}
+            {% if forloop.counter <= review.stars %}★{% else %}☆{% endif %}
+          {% endfor %}
+        </div>
+        <p>{{ review.text }}</p>
+        <strong>{{ review.name }}</strong>
+      </div>
+    {% empty %}
+      <div class="empty-box">لا توجد آراء حالياً.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

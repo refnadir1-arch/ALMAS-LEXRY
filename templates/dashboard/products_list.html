@@ -1,0 +1,44 @@
+{% extends "dashboard/base.html" %}
+{% load money %}
+
+{% block content %}
+<div class="dash-head">
+  <h1>المنتجات</h1>
+  <a href="{% url 'dashboard_product_create' %}" class="btn-primary">إضافة منتج</a>
+</div>
+
+<form method="get" class="dash-search">
+  <input type="text" name="q" value="{{ q }}" placeholder="بحث عن منتج">
+  <button type="submit" class="btn-secondary">بحث</button>
+</form>
+
+<table class="dash-table">
+  <thead>
+    <tr>
+      <th>الاسم</th>
+      <th>القسم</th>
+      <th>السعر</th>
+      <th>التخفيض</th>
+      <th>الحالة</th>
+      <th>إجراءات</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in products %}
+    <tr>
+      <td>{{ p.name }}</td>
+      <td>{{ p.category.name }}</td>
+      <td>{{ p.price_dzd|dzd }}</td>
+      <td>{{ p.discount_percent }}%</td>
+      <td>{% if p.is_active %}ظاهر{% else %}مخفي{% endif %}</td>
+      <td class="actions-cell">
+        <a href="{% url 'dashboard_product_edit' p.id %}">تعديل</a>
+        <a href="{% url 'dashboard_variants' p.id %}">المتغيرات</a>
+        <a href="{{ p.get_absolute_url }}" target="_blank">عرض</a>
+        <a href="{% url 'dashboard_product_delete' p.id %}" class="danger-link">حذف</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

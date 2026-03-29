@@ -1,0 +1,52 @@
+{% extends "dashboard/base.html" %}
+{% load money %}
+
+{% block content %}
+<div class="dash-head">
+  <h1>الطلبات</h1>
+  <a href="{% url 'dashboard_orders_export_csv' %}" class="btn-secondary">تصدير CSV</a>
+</div>
+
+<form method="get" class="dash-search">
+  <input type="text" name="q" value="{{ q }}" placeholder="بحث برمز الطلب أو الهاتف أو الاسم">
+  <select name="status">
+    <option value="">كل الحالات</option>
+    <option value="NEW" {% if status == 'NEW' %}selected{% endif %}>جديد</option>
+    <option value="CONTACTED" {% if status == 'CONTACTED' %}selected{% endif %}>تم التواصل</option>
+    <option value="CONFIRMED" {% if status == 'CONFIRMED' %}selected{% endif %}>مؤكد</option>
+    <option value="PREPARING" {% if status == 'PREPARING' %}selected{% endif %}>قيد التحضير</option>
+    <option value="SHIPPED" {% if status == 'SHIPPED' %}selected{% endif %}>تم الشحن</option>
+    <option value="OUT_FOR_DELIVERY" {% if status == 'OUT_FOR_DELIVERY' %}selected{% endif %}>قيد التوصيل</option>
+    <option value="DELIVERED" {% if status == 'DELIVERED' %}selected{% endif %}>تم التسليم</option>
+    <option value="CANCELED" {% if status == 'CANCELED' %}selected{% endif %}>ملغي</option>
+  </select>
+  <button type="submit" class="btn-secondary">تصفية</button>
+</form>
+
+<table class="dash-table">
+  <thead>
+    <tr>
+      <th>الرمز</th>
+      <th>الاسم</th>
+      <th>الهاتف</th>
+      <th>المنتج</th>
+      <th>الإجمالي</th>
+      <th>الحالة</th>
+      <th>التاريخ</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for order in orders %}
+    <tr>
+      <td><a href="{% url 'dashboard_order_detail' order.code %}">{{ order.code }}</a></td>
+      <td>{{ order.full_name }}</td>
+      <td>{{ order.phone }}</td>
+      <td>{{ order.product.name }}</td>
+      <td>{{ order.total_dzd|dzd }}</td>
+      <td>{{ order.get_status_display }}</td>
+      <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

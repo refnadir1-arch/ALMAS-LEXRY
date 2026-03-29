@@ -1,0 +1,119 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<h1>{{ page_title }}</h1>
+
+<form method="post" enctype="multipart/form-data" class="dash-form">
+  {% csrf_token %}
+
+  <div class="dashboard-section two-col">
+    <div class="info-card">
+      <h3>المعلومات الأساسية</h3>
+      <div class="form-row">
+        <label>{{ form.name.label }}</label>
+        {{ form.name }}
+      </div>
+
+      <div class="form-row">
+        <label>{{ form.slug.label }}</label>
+        {{ form.slug }}
+      </div>
+
+      <div class="form-row">
+        <label>{{ form.category.label }}</label>
+        {{ form.category }}
+      </div>
+
+      <div class="form-row">
+        <label>{{ form.description.label }}</label>
+        {{ form.description }}
+      </div>
+
+      <div class="form-row">
+        <label>{{ form.video_url.label }}</label>
+        {{ form.video_url }}
+      </div>
+
+      <div class="form-row">
+        <label>{{ form.sku.label }}</label>
+        {{ form.sku }}
+      </div>
+
+      <div class="form-row">
+        <label>{{ form.is_active.label }}</label>
+        {{ form.is_active }}
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>التسعير والصور</h3>
+      <div class="form-row">
+        <label>{{ form.price_dzd.label }}</label>
+        {{ form.price_dzd }}
+      </div>
+
+      <div class="form-row">
+        <label>{{ form.compare_at_price_dzd.label }}</label>
+        {{ form.compare_at_price_dzd }}
+      </div>
+
+      <div class="form-row">
+        <label>{{ form.cost_price_dzd.label }}</label>
+        {{ form.cost_price_dzd }}
+      </div>
+
+      <div class="form-row">
+        <label>{{ form.image.label }}</label>
+        {{ form.image }}
+      </div>
+
+      <div class="form-row">
+        <label>{{ form.extra_images.label }}</label>
+        {{ form.extra_images }}
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-section">
+    <h3>تحسين محركات البحث</h3>
+    <div class="form-row">
+      <label>{{ form.seo_title.label }}</label>
+      {{ form.seo_title }}
+    </div>
+    <div class="form-row">
+      <label>{{ form.seo_description.label }}</label>
+      {{ form.seo_description }}
+    </div>
+  </div>
+
+  {% if form.errors %}
+    <div class="dashboard-section">
+      <div class="field-error">
+        {{ form.errors }}
+      </div>
+    </div>
+  {% endif %}
+
+  <button type="submit" class="btn-primary">حفظ المنتج</button>
+</form>
+
+{% if product %}
+  <div class="dashboard-section">
+    <h3>صور المنتج الحالية</h3>
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+      {% for img in product.images.all %}
+        <div style="width:120px;">
+          <img src="{{ img.image.url }}" alt="" style="width:100%; height:120px; object-fit:cover; border-radius:12px;">
+          {% if img.is_primary %}<p class="muted">رئيسية</p>{% endif %}
+        </div>
+      {% empty %}
+        <p class="muted">لا توجد صور حالياً.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="dashboard-section">
+    <a href="{% url 'dashboard_variants' product.id %}" class="btn-secondary">إدارة المتغيرات</a>
+  </div>
+{% endif %}
+{% endblock %}

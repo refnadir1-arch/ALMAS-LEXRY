@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load money %}
+
+{% block content %}
+<section class="section">
+  <div class="card">
+    <h1>سياسة الشحن</h1>
+    <p>التوصيل إلى باب المنزل: {{ STORE_SETTINGS.shipping_home_fee_dzd|dzd }}</p>
+    <p>التوصيل إلى مكتب التوصيل: {{ STORE_SETTINGS.shipping_office_fee_dzd|dzd }}</p>
+    <p>يتم تأكيد الطلب هاتفيًا قبل الشحن.</p>
+  </div>
+</section>
+{% endblock %}

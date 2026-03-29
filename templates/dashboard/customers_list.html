@@ -1,0 +1,26 @@
+{% extends "dashboard/base.html" %}
+{% load money %}
+
+{% block content %}
+<h1>الزبونات</h1>
+<table class="dash-table">
+  <thead>
+    <tr>
+      <th>الاسم</th>
+      <th>الهاتف</th>
+      <th>عدد الطلبات</th>
+      <th>إجمالي الإنفاق</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in customers %}
+    <tr>
+      <td>{{ c.full_name }}</td>
+      <td>{{ c.phone }}</td>
+      <td>{{ c.orders_count }}</td>
+      <td>{{ c.total_spent|default:0|dzd }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
