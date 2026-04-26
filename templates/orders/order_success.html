@@ -1,26 +1,36 @@
 {% extends "base.html" %}
-{% load money %}
 
 {% block content %}
 <section class="section">
-  <div class="success-box">
-    <h1>تم استلام طلبك بنجاح</h1>
-    <p>رمز الطلب الخاص بك:</p>
-    <div class="order-code">{{ order.code }}</div>
-
-    <div class="success-details">
-      <p><strong>المنتج:</strong> {{ order.product.name }}</p>
-      <p><strong>المقاس:</strong> {{ order.variant.size }}</p>
-      <p><strong>اللون:</strong> {{ order.variant.color }}</p>
-      <p><strong>الكمية:</strong> {{ order.qty }}</p>
-      <p><strong>الإجمالي:</strong> {{ order.total_dzd|dzd }}</p>
-      <p><strong>الحالة:</strong> {{ order.get_status_display }}</p>
+  <div class="success-box luxury-success-box">
+    <div class="success-icon-wrap">
+      <div class="success-icon">✓</div>
     </div>
 
-    <div class="hero-actions">
-      <a href="{% url 'track_order' %}" class="btn btn-primary">تتبع الطلب</a>
-      <a href="{% url 'store' %}" class="btn btn-outline">العودة للمنتجات</a>
+    <h1>شكراً على طلبك</h1>
+
+    <p class="muted luxury-success-text">
+      تم استلام طلبك بنجاح، وسيتم الاتصال بك قريبًا من طرف فريقنا
+      لتأكيد الطلب ومراجعة تفاصيل التوصيل.
+    </p>
+
+    <div class="hero-actions luxury-success-actions">
+      <a href="{% url 'home' %}" class="btn btn-primary">العودة إلى الرئيسية</a>
+      <a href="{% url 'store' %}" class="btn btn-outline">متابعة التصفح</a>
     </div>
   </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+{% if META_PIXEL_ID %}
+<script>
+  fbq('track', 'Lead', {
+    content_name: '{{ order.product.name|escapejs }}',
+    content_type: 'product',
+    value: '{{ order.total_dzd }}',
+    currency: 'DZD'
+  });
+</script>
+{% endif %}
 {% endblock %}

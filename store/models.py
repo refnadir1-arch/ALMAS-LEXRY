@@ -1,5 +1,7 @@
 from django.db import models
 from django.urls import reverse
+from django.utils.text import slugify
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -14,10 +16,18 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
 class Product(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="products",
+        verbose_name="القسم"
+    )
     name = models.CharField(max_length=180)
-    slug = models.SlugField(max_length=180, unique=True)
+    slug = models.SlugField(max_length=180, unique=True, blank=True, null=True)
     description = models.TextField(blank=True)
 
     price_dzd = models.PositiveIntegerField(verbose_name="السعر")
@@ -51,6 +61,20 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name, allow_unicode=True)
+            slug = base_slug or "product"
+            counter = 1
+
+            while Product.objects.exclude(pk=self.pk).filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+
+            self.slug = slug
+
+        super().save(*args, **kwargs)
+
     @property
     def discount_percent(self):
         if self.compare_at_price_dzd and self.compare_at_price_dzd > self.price_dzd:
@@ -75,6 +99,7 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse("product_detail", kwargs={"slug": self.slug})
 
+
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="products/%Y/%m/")
@@ -87,8 +112,10 @@ class ProductImage(models.Model):
     def __str__(self):
         return f"صورة - {self.product.name}"
 
+
 class Variant(models.Model):
     SIZE_CHOICES = [
+        ("STD", "مقاس موحد"),   # جديد
         ("XS", "XS"),
         ("S", "S"),
         ("M", "M"),
@@ -98,9 +125,26 @@ class Variant(models.Model):
     ]
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
-    size = models.CharField(max_length=5, choices=SIZE_CHOICES)
-    color = models.CharField(max_length=50)
-    stock = models.PositiveIntegerField(default=0)
+
+    # صار غير إجباري + افتراضي "STD"
+    size = models.CharField(
+        max_length=5,
+        choices=SIZE_CHOICES,
+        blank=True,
+        default="STD",
+        verbose_name="المقاس"
+    )
+
+    color = models.CharField(max_length=50, verbose_name="اللون")
+
+    color_image = models.ImageField(
+        upload_to="variants/%Y/%m/",
+        null=True,
+        blank=True,
+        verbose_name="صورة اللون"
+    )
+
+    stock = models.PositiveIntegerField(default=0, verbose_name="المخزون")
 
     class Meta:
         verbose_name = "متغير"
@@ -111,7 +155,14 @@ class Variant(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.product.name} - {self.size} - {self.color}"
+        size = self.size or "STD"
+        return f"{self.product.name} - {size} - {self.color}"
+
+    def save(self, *args, **kwargs):
+        # لو جاء فارغ من الفورم نخليه "STD"
+        if not self.size:
+            self.size = "STD"
+        super().save(*args, **kwargs)
 
     @property
     def is_available(self):

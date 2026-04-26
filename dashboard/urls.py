@@ -17,6 +17,7 @@ urlpatterns = [
     path("products/<int:product_id>/variants/", views.variants_manage, name="dashboard_variants"),
 
     path("orders/", views.orders_list, name="dashboard_orders"),
+    path("orders/<str:code>/delete/", views.order_delete, name="dashboard_order_delete"),
     path("orders/<str:code>/", views.order_detail, name="dashboard_order_detail"),
     path("orders/export/csv/", views.orders_export_csv, name="dashboard_orders_export_csv"),
 
@@ -24,6 +25,7 @@ urlpatterns = [
     path("reviews/new/", views.review_create, name="dashboard_review_create"),
     path("reviews/<int:pk>/edit/", views.review_edit, name="dashboard_review_edit"),
     path("reviews/<int:pk>/delete/", views.review_delete, name="dashboard_review_delete"),
+
 
     path("settings/", views.settings_form, name="dashboard_settings"),
     path("customers/", views.customers_list, name="dashboard_customers"),

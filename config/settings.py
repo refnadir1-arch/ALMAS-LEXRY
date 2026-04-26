@@ -52,9 +52,10 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.store_settings",
             ],
-            "libraries": {
-                "money": "core.templatetags.money",
-            },
+           "libraries": {
+    "money": "core.templatetags.money",
+    "order_badges": "dashboard.templatetags.order_badges",
+},
         },
     },
 ]

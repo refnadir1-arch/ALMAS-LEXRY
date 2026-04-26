@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load money %}
+
+{% block content %}
+<section class="section">
+  <div class="section-head">
+    <h1>سلة المشتريات</h1>
+    <a class="btn btn-outline" href="{% url 'store' %}">متابعة التسوق</a>
+  </div>
+
+  {% if not items %}
+    <div class="empty-box">السلة فارغة.</div>
+  {% else %}
+    <div class="lux-product-card" style="padding:22px;">
+      <table class="dash-table" style="width:100%;">
+        <thead>
+          <tr>
+            <th>المنتج</th>
+            <th>المتغير</th>
+            <th>الكمية</th>
+            <th>المجموع</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for it in items %}
+          <tr>
+            <td>
+              <strong>{{ it.product.name }}</strong>
+            </td>
+            <td>
+              {{ it.variant.color }} —
+              {% if it.variant.size and it.variant.size != "STD" %}{{ it.variant.size }}{% else %}مقاس موحد{% endif %}
+            </td>
+            <td>{{ it.qty }}</td>
+            <td>{{ it.line_total|dzd }}</td>
+            <td>
+              <a class="btn btn-outline" href="{% url 'cart_remove' it.variant.id %}">حذف</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div style="margin-top:18px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+        <div>
+          <strong>المجموع (بدون التوصيل): </strong>
+          <span style="color:var(--gold); font-weight:900;">{{ subtotal|dzd }}</span>
+        </div>
+
+        <a class="btn btn-primary" href="{% url 'cart_checkout' %}">إتمام الطلب</a>
+      </div>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

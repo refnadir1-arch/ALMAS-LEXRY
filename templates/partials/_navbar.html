@@ -13,15 +13,13 @@
       <a href="{% url 'home' %}">الرئيسية</a>
       <a href="{% url 'store' %}">المنتجات</a>
       <a href="{% url 'store' %}?sort=new">الجديد</a>
-      <a href="{% url 'store' %}?sort=best">الأكثر مبيعًا</a>
-      <a href="{% url 'track_order' %}">تتبع الطلب</a>
       <a href="{% url 'contact' %}">تواصل معنا</a>
     </nav>
-
-    <div class="nav-actions">
+     <div class="nav-actions">
       <a class="icon-btn" href="tel:{{ STORE_SETTINGS.phone }}" title="اتصال">📞</a>
       <a class="icon-btn" href="https://wa.me/213{{ STORE_SETTINGS.whatsapp|slice:'1:' }}" target="_blank" rel="noopener" title="واتساب">💬</a>
-      <a class="btn btn-primary" href="{% url 'store' %}">اضغط للطلب</a>
-    </div>
+     >
+
+   
   </div>
 </header>

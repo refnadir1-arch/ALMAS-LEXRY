@@ -1,7 +1,7 @@
 ORDER_STATUSES = [
     ("NEW", "جديد"),
-    ("CONTACTED", "تم التواصل"),
-    ("CONFIRMED", "مؤكد"),
+    ("PENDING_CONFIRMATION", "قيد التأكيد"),
+    ("CONFIRMED", "تم التأكيد"),
     ("PREPARING", "قيد التحضير"),
     ("SHIPPED", "تم الشحن"),
     ("OUT_FOR_DELIVERY", "قيد التوصيل"),

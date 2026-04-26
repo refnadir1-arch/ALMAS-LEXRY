@@ -1,6 +1,10 @@
+from collections import OrderedDict
+
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
+
 from store.models import Category, Product
+
 
 def store_view(request):
     qs = Product.objects.filter(is_active=True).select_related("category").prefetch_related("images", "variants")
@@ -58,12 +62,41 @@ def store_view(request):
         }
     })
 
+
 def product_detail(request, slug):
     product = get_object_or_404(
         Product.objects.select_related("category").prefetch_related("images", "variants"),
         slug=slug,
         is_active=True
     )
+
+    variants_qs = product.variants.all().order_by("color", "size")
+
+    # بيانات المتغيرات للـ JS (لون/مقاس/مخزون/صورة اللون)
+    variants_data = []
+    for v in variants_qs:
+        variants_data.append({
+            "id": v.id,
+            "color": v.color,
+            "size": (v.size or "STD"),
+            "stock": int(v.stock or 0),
+            "img": (v.color_image.url if getattr(v, "color_image", None) else ""),
+        })
+
+    # خيارات الألوان (صورة اللون + هل يوجد مخزون)
+    colors = OrderedDict()
+    for v in variants_qs:
+        if v.color not in colors:
+            colors[v.color] = {"color": v.color, "img": "", "has_stock": False}
+
+        if v.stock and v.stock > 0:
+            colors[v.color]["has_stock"] = True
+
+        if (not colors[v.color]["img"]) and getattr(v, "color_image", None):
+            colors[v.color]["img"] = v.color_image.url
+
+    color_options = list(colors.values())
+
     related = Product.objects.filter(
         category=product.category,
         is_active=True
@@ -72,6 +105,9 @@ def product_detail(request, slug):
     return render(request, "store/product_detail.html", {
         "page_title": product.name,
         "product": product,
-        "variants": product.variants.all().order_by("size", "color"),
+        "variants": variants_qs,
+        "variants_data": variants_data,
+        "color_options": color_options,
         "related": related,
+        "pink_page": True,   # ✅ الخلفية الوردية لهذه الصفحة فقط
     })

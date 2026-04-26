@@ -2,18 +2,158 @@
 {% load money %}
 {% load static %}
 
+{% block extra_head %}
+<style>
+  .variant-cards{
+    display:grid;
+    grid-template-columns:repeat(4, minmax(0,1fr));
+    gap:12px;
+    margin-top:10px;
+  }
+  @media (max-width: 991px){ .variant-cards{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+
+  .variant-card{
+    border-radius:18px; overflow:hidden;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    cursor:pointer; padding:0; text-align:center;
+    transition:.2s ease; position:relative;
+  }
+  .variant-card:hover{ transform: translateY(-2px); border-color: rgba(212,180,120,.25); }
+  .variant-card.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); }
+  .variant-card.is-disabled{ opacity:.45; cursor:not-allowed; }
+  .variant-card img{ width:100%; height:110px; object-fit:cover; display:block; background:#120d12; }
+  .variant-card .vlabel{ padding:10px 10px 12px; display:flex; flex-direction:column; gap:4px; }
+  .variant-card .vcolor{ font-weight:900; font-size:13px; color:#ff4da0; }
+  .variant-card .vsize{ font-weight:800; font-size:12px; color:var(--muted); }
+
+  .items-box{
+    margin-top:14px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    border-radius:18px;
+    padding:14px;
+  }
+  .items-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .items-row:last-child{ border-bottom:0; }
+
+  .item-left{ display:flex; align-items:center; gap:10px; }
+  .item-img{
+    width:54px;height:54px;border-radius:12px;object-fit:cover;
+    border:1px solid rgba(255,255,255,.10);
+    background:#120d12;
+  }
+  .item-title{ font-weight:900; }
+  .item-sub{ color:var(--muted); font-size:13px; }
+
+  .qty-mini{ display:flex; align-items:center; gap:8px; }
+  .qty-mini button{
+    width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.10);
+    background:#140f15;color:#fff;cursor:pointer;font-weight:900;
+  }
+  .qty-mini span{ min-width:18px; text-align:center; font-weight:900; color:var(--gold); }
+
+  .del-btn{
+    border:1px solid rgba(255,255,255,.10);
+    background:transparent;color:#fff;
+    padding:10px 12px;border-radius:12px;cursor:pointer;
+  }
+
+  /* ===== نوع التوصيل كبطاقات ===== */
+  .delivery-cards{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:12px;
+    margin-top:10px;
+  }
+  @media (max-width: 900px){
+    .delivery-cards{ grid-template-columns:1fr; }
+  }
+
+  .delivery-card{
+    width:100%;
+    text-align:right;
+    border-radius:18px;
+    padding:16px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    cursor:pointer;
+    transition:.2s ease;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .delivery-card:hover{
+    transform:translateY(-2px);
+    border-color: rgba(212,180,120,.25);
+  }
+  .delivery-card.is-active{
+    border-color:#ff2f8a;
+    box-shadow:0 0 0 3px rgba(255,47,138,.12);
+  }
+  .delivery-card.is-disabled{
+    opacity:.45;
+    cursor:not-allowed;
+  }
+
+  .delivery-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .delivery-icon{
+    width:46px;height:46px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    background: rgba(0,0,0,.18);
+    border:1px solid rgba(255,255,255,.10);
+  }
+  .delivery-meta strong{
+    display:block;
+    font-size:16px;
+    font-weight:900;
+  }
+  .delivery-meta span{
+    display:block;
+    font-size:13px;
+    color: var(--muted);
+    margin-top:4px;
+  }
+
+  /* نخفي select الحقيقي (يبقى موجود للحفظ و shipping-live.js) */
+  select[name="delivery_type"]{ display:none; }
+
+  /* صندوق الحساب تحت جدول المعلومات */
+  .checkout-summary{ margin-top:16px; }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="section">
   <div class="section-head center-head">
     <h1>إتمام الطلب</h1>
-    <p class="muted">اختاري المقاس واللون، ثم املئي البيانات لإتمام الطلب</p>
+    <p class="muted">يمكنك إضافة أكثر من لون/مقاس لنفس المنتج في نفس الطلب</p>
   </div>
 
   <div class="lux-order-layout">
+
+    <!-- LEFT: المنتج -->
     <div class="lux-product-card">
       <div class="lux-product-media">
         {% if product.primary_image %}
-          <img src="{{ product.primary_image }}" alt="{{ product.name }}">
+          <img id="orderProductImage" src="{{ product.primary_image }}" alt="{{ product.name }}">
         {% endif %}
       </div>
 
@@ -21,64 +161,93 @@
         <h2>{{ product.name }}</h2>
 
         <div class="lux-price-row">
-          <span class="lux-price-current">{{ product.final_price_dzd|dzd }}</span>
+          <span class="lux-price-current" id="productPrice" data-price="{{ product.final_price_dzd }}">
+            {{ product.final_price_dzd|dzd }}
+          </span>
           {% if product.has_discount %}
             <span class="lux-price-old">{{ product.compare_at_price_dzd|dzd }}</span>
             <span class="lux-badge discount-badge">-{{ product.discount_percent }}%</span>
           {% endif %}
         </div>
 
-        <div class="lux-product-note">
-          الدفع عند الاستلام فقط
-        </div>
-
-        <div class="lux-shipping-box">
-          <div class="ship-row">
-            <span>إلى باب المنزل</span>
-            <strong>{{ shipping_home|dzd }}</strong>
-          </div>
-          <div class="ship-row">
-            <span>إلى مكتب التوصيل</span>
-            <strong>{{ shipping_office|dzd }}</strong>
-          </div>
-        </div>
+        <div class="lux-product-note">الدفع عند الاستلام فقط</div>
       </div>
     </div>
 
+    <!-- RIGHT: النموذج + الحساب -->
     <div class="lux-form-card">
       {% if form.non_field_errors %}
         <div class="error-box">{{ form.non_field_errors }}</div>
       {% endif %}
 
+      {% if shipping_error %}
+        <div class="error-box">{{ shipping_error }}</div>
+      {% endif %}
+
       <form method="post" class="lux-form" id="directOrderForm">
         {% csrf_token %}
 
+        {{ form.items_json }}
+        {{ form.variant_id }}
+        {{ form.qty }}
+
         <div class="lux-form-group">
-          <label>المقاس واللون</label>
-          <select name="variant_id" required class="lux-input">
-            <option value="">اختاري المقاس واللون</option>
+          <label>اختاري لون/مقاس</label>
+
+          <div class="variant-cards" id="variantCards">
             {% for v in variants %}
-              <option value="{{ v.id }}" {% if form.variant_id.value|stringformat:"s" == v.id|stringformat:"s" %}selected{% endif %} {% if v.stock == 0 %}disabled{% endif %}>
-                {{ v.size }} — {{ v.color }} {% if v.stock > 0 %}(الكمية محدودة){% else %}(غير متوفر){% endif %}
-              </option>
+              <button
+                type="button"
+                class="variant-card {% if v.stock == 0 %}is-disabled{% endif %}"
+                data-variant-id="{{ v.id }}"
+              >
+                <img src="{% if v.color_image %}{{ v.color_image.url }}{% elif product.primary_image %}{{ product.primary_image }}{% endif %}" alt="{{ v.color }}">
+                <div class="vlabel">
+                  <div class="vcolor">{{ v.color }}</div>
+                  <div class="vsize">{% if v.size and v.size != "STD" %}{{ v.size }}{% else %}مقاس موحد{% endif %}</div>
+                </div>
+              </button>
             {% endfor %}
-          </select>
-          {% for e in form.variant_id.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <button type="button" class="btn btn-outline w-full" id="addLineBtn" style="margin-top:12px;">
+            إضافة لون/مقاس آخر
+          </button>
+
+          <div class="items-box" id="itemsBox" style="display:none;">
+            <strong>اختياراتك:</strong>
+            <div id="itemsList" style="margin-top:10px;"></div>
+          </div>
         </div>
 
-        <div class="lux-inline-grid two-cols">
-          <div class="lux-form-group">
-            <label>الكمية</label>
-            <input type="number" name="qty" min="1" max="5" value="{{ form.qty.value|default:1 }}" required class="lux-input">
-            <small class="muted">الحد الأقصى: 5</small>
-            {% for e in form.qty.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        <!-- ✅ نوع التوصيل كبطاقات -->
+        <div class="lux-form-group">
+          <label>نوع التوصيل</label>
+
+          <div class="delivery-cards" id="deliveryCards">
+            <button type="button" class="delivery-card" data-delivery="OFFICE">
+              <div class="delivery-left">
+                <div class="delivery-icon">🏢</div>
+                <div class="delivery-meta">
+                  <strong>مكتب التوصيل</strong>
+                  <span>استلام من المكتب</span>
+                </div>
+              </div>
+            </button>
+
+            <button type="button" class="delivery-card" data-delivery="HOME">
+              <div class="delivery-left">
+                <div class="delivery-icon">🏠</div>
+                <div class="delivery-meta">
+                  <strong>التوصيل للمنزل</strong>
+                  <span>استلام عند باب المنزل</span>
+                </div>
+              </div>
+            </button>
           </div>
 
-          <div class="lux-form-group">
-            <label>نوع التوصيل</label>
-            {{ form.delivery_type }}
-            {% for e in form.delivery_type.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-          </div>
+          {{ form.delivery_type }}
+          {% for e in form.delivery_type.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
 
         <div class="lux-form-group">
@@ -112,9 +281,217 @@
           {{ form.customer_note }}
         </div>
 
+        <!-- ✅ صندوق الحساب تحت جدول المعلومات -->
+        <div class="lux-shipping-box checkout-summary">
+          <div class="ship-row">
+            <span>مجموع المنتجات</span>
+            <strong id="itemsSubtotal" data-subtotal="{{ product.final_price_dzd }}">{{ product.final_price_dzd|dzd }}</strong>
+          </div>
+
+          <div class="ship-row">
+            <span>سعر التوصيل</span>
+            <strong id="shippingPriceText">اختاري الولاية ونوع التوصيل</strong>
+          </div>
+
+          <div class="ship-row">
+            <span>رسوم الإرجاع</span>
+            <strong id="returnFeeText">اختاري الولاية</strong>
+          </div>
+
+          <div class="ship-row">
+            <span>الإجمالي المتوقع</span>
+            <strong id="expectedTotalText">{{ product.final_price_dzd|dzd }}</strong>
+          </div>
+        </div>
+
+        <div id="shippingErrorBox" class="error-box" style="display:none; margin-top:16px;"></div>
+
         <button type="submit" class="btn btn-primary w-full large-btn">تأكيد الطلب</button>
       </form>
     </div>
+
   </div>
 </section>
+
+{{ variants_data|json_script:"variants-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/shipping-live.js' %}"></script>
+
+<script>
+(function(){
+  const VARIANTS = JSON.parse(document.getElementById('variants-data').textContent || '[]');
+  const byId = Object.fromEntries(VARIANTS.map(v => [String(v.id), v]));
+
+  const form = document.getElementById('directOrderForm');
+  const itemsJsonInput = form.querySelector('input[name="items_json"]');
+  const hiddenVariant = form.querySelector('input[name="variant_id"]');
+
+  const subtotalEl = document.getElementById('itemsSubtotal');
+  const unitPrice = Number(document.getElementById('productPrice')?.dataset?.price || 0);
+
+  const cards = Array.from(document.querySelectorAll('#variantCards [data-variant-id]'));
+  const addBtn = document.getElementById('addLineBtn');
+
+  const itemsBox = document.getElementById('itemsBox');
+  const itemsList = document.getElementById('itemsList');
+
+  let selectedVariantId = null;
+  let items = [];
+
+  function saveItems(){ itemsJsonInput.value = JSON.stringify(items); }
+  function calcSubtotal(){
+    const totalQty = items.reduce((s, it) => s + Number(it.qty || 0), 0);
+    return unitPrice * totalQty;
+  }
+  function refreshSubtotal(){
+    const subtotal = calcSubtotal();
+    subtotalEl.dataset.subtotal = String(subtotal);
+    subtotalEl.textContent = subtotal.toLocaleString("en-US") + " دج";
+    document.dispatchEvent(new Event('items:changed'));
+  }
+
+  function renderItems(){
+    if (!items.length){
+      itemsBox.style.display = 'none';
+      itemsList.innerHTML = '';
+      return;
+    }
+    itemsBox.style.display = 'block';
+    itemsList.innerHTML = '';
+
+    items.forEach((it, idx) => {
+      const v = byId[String(it.variant_id)];
+      const row = document.createElement('div');
+      row.className = 'items-row';
+
+      row.innerHTML = `
+        <div class="item-left">
+          <img class="item-img" src="${(v && v.img) ? v.img : ''}" alt="">
+          <div>
+            <div class="item-title">${v ? v.color : ''}</div>
+            <div class="item-sub">${v ? (v.size === 'STD' ? 'مقاس موحد' : v.size) : ''}</div>
+          </div>
+        </div>
+
+        <div class="qty-mini">
+          <button type="button" data-act="minus">-</button>
+          <span>${it.qty}</span>
+          <button type="button" data-act="plus">+</button>
+        </div>
+
+        <button type="button" class="del-btn" data-act="del">حذف</button>
+      `;
+
+      row.querySelector('[data-act="minus"]').addEventListener('click', () => {
+        it.qty = Math.max(1, it.qty - 1);
+        saveItems(); renderItems(); refreshSubtotal();
+      });
+
+      row.querySelector('[data-act="plus"]').addEventListener('click', () => {
+        const stock = v ? Number(v.stock || 0) : 0;
+        if (it.qty >= 5) return;
+        if (stock && it.qty + 1 > stock) return;
+        it.qty += 1;
+        saveItems(); renderItems(); refreshSubtotal();
+      });
+
+      row.querySelector('[data-act="del"]').addEventListener('click', () => {
+        items.splice(idx, 1);
+        saveItems(); renderItems(); refreshSubtotal();
+      });
+
+      itemsList.appendChild(row);
+    });
+  }
+
+  function markActive(){
+    cards.forEach(c => c.classList.toggle('is-active', c.getAttribute('data-variant-id') === String(selectedVariantId)));
+  }
+
+  function selectCard(id){
+    selectedVariantId = String(id);
+    if (hiddenVariant) hiddenVariant.value = selectedVariantId;
+    markActive();
+
+    const v = byId[selectedVariantId];
+    const img = v && v.img ? v.img : null;
+    const main = document.getElementById('orderProductImage');
+    if (img && main) main.src = img;
+  }
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      if (card.classList.contains('is-disabled')) return;
+      selectCard(card.getAttribute('data-variant-id'));
+    });
+  });
+
+  addBtn.addEventListener('click', () => {
+    if (!selectedVariantId) return;
+    const v = byId[selectedVariantId];
+    if (!v || Number(v.stock || 0) <= 0) return;
+
+    const existing = items.find(x => String(x.variant_id) === String(selectedVariantId));
+    if (existing){
+      if (existing.qty >= 5) return;
+      if (existing.qty + 1 > Number(v.stock || 0)) return;
+      existing.qty += 1;
+    } else {
+      items.push({variant_id: Number(selectedVariantId), qty: 1});
+    }
+
+    saveItems();
+    renderItems();
+    refreshSubtotal();
+  });
+
+  // init from initial items_json
+  try{
+    const init = JSON.parse(itemsJsonInput.value || '[]');
+    if (Array.isArray(init) && init.length){
+      items = init.map(x => ({variant_id: Number(x.variant_id), qty: Number(x.qty)}));
+      selectedVariantId = String(items[0].variant_id);
+      selectCard(selectedVariantId);
+      saveItems(); renderItems(); refreshSubtotal();
+    }
+  }catch(e){}
+
+  // fallback
+  if (!items.length){
+    const first = cards.find(c => !c.classList.contains('is-disabled'));
+    if (first){
+      selectCard(first.getAttribute('data-variant-id'));
+      items = [{variant_id: Number(selectedVariantId), qty: 1}];
+      saveItems(); renderItems(); refreshSubtotal();
+    }
+  }
+
+  // ===== Delivery cards sync with select =====
+  const deliverySelect = document.querySelector('select[name="delivery_type"]');
+  const deliveryCards = Array.from(document.querySelectorAll('#deliveryCards [data-delivery]'));
+
+  function markActiveDelivery(v){
+    deliveryCards.forEach(c => c.classList.toggle('is-active', c.getAttribute('data-delivery') === v));
+  }
+
+  function setDelivery(v){
+    if (!deliverySelect) return;
+    deliverySelect.value = v;
+    markActiveDelivery(v);
+    deliverySelect.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+
+  deliveryCards.forEach(card => {
+    card.addEventListener('click', () => {
+      if (card.classList.contains('is-disabled')) return;
+      setDelivery(card.getAttribute('data-delivery'));
+    });
+  });
+
+  if (deliverySelect && deliverySelect.value) markActiveDelivery(deliverySelect.value);
+  else setDelivery('OFFICE');
+})();
+</script>
 {% endblock %}

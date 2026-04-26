@@ -1,4 +1,4 @@
-import csv
+﻿import csv
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -130,24 +130,16 @@ def product_create(request):
     if request.method == "POST" and form.is_valid():
         product = form.save()
 
-        image = form.cleaned_data.get("image")
-        if image:
+        images = request.FILES.getlist("all_images")
+        for i, img in enumerate(images):
             ProductImage.objects.create(
                 product=product,
-                image=image,
-                is_primary=True
-            )
-
-        extra_image = request.FILES.get("extra_images")
-        if extra_image:
-            ProductImage.objects.create(
-                product=product,
-                image=extra_image,
-                is_primary=False
+                image=img,
+                is_primary=(i == 0),
             )
 
         messages.success(request, "تم إنشاء المنتج بنجاح.")
-        return redirect("dashboard_products")
+        return redirect("dashboard_product_edit", pk=product.pk)
 
     return render(request, "dashboard/product_form.html", {
         "page_title": "إضافة منتج",
@@ -164,25 +156,18 @@ def product_edit(request, pk):
     if request.method == "POST" and form.is_valid():
         product = form.save()
 
-        image = form.cleaned_data.get("image")
-        if image:
-            ProductImage.objects.filter(product=product, is_primary=True).update(is_primary=False)
-            ProductImage.objects.create(
-                product=product,
-                image=image,
-                is_primary=True
-            )
-
-        extra_image = request.FILES.get("extra_images")
-        if extra_image:
-            ProductImage.objects.create(
-                product=product,
-                image=extra_image,
-                is_primary=False
-            )
+        images = request.FILES.getlist("all_images")
+        if images:
+            has_primary = product.images.filter(is_primary=True).exists()
+            for i, img in enumerate(images):
+                ProductImage.objects.create(
+                    product=product,
+                    image=img,
+                    is_primary=(not has_primary and i == 0),
+                )
 
         messages.success(request, "تم تحديث المنتج.")
-        return redirect("dashboard_products")
+        return redirect("dashboard_product_edit", pk=product.pk)
 
     return render(request, "dashboard/product_form.html", {
         "page_title": "تعديل المنتج",
@@ -202,7 +187,7 @@ def product_delete(request, pk):
 @dashboard_required
 def variants_manage(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
-    form = VariantForm(request.POST or None)
+    form = VariantForm(request.POST or None, request.FILES or None)
 
     if request.method == "POST" and form.is_valid():
         variant = form.save(commit=False)
@@ -257,10 +242,7 @@ def order_detail(request, code):
 
     form = OrderStatusUpdateForm(
         request.POST or None,
-        initial={
-            "status": order.status,
-            "admin_note": order.admin_note,
-        }
+        initial={"status": order.status, "admin_note": order.admin_note}
     )
 
     if request.method == "POST" and form.is_valid():
@@ -283,7 +265,7 @@ def order_detail(request, code):
             changed_by=request.user
         )
 
-        messages.success(request, "تم تحديث الطلب.")
+        messages.success(request, "تم تحديث حالة الطلب بنجاح.")
         return redirect("dashboard_order_detail", code=order.code)
 
     return render(request, "dashboard/order_detail.html", {
@@ -302,19 +284,8 @@ def orders_export_csv(request):
 
     writer = csv.writer(response)
     writer.writerow([
-        "رمز الطلب",
-        "الاسم",
-        "الهاتف",
-        "المنتج",
-        "المقاس",
-        "اللون",
-        "الكمية",
-        "الولاية",
-        "البلدية",
-        "نوع التوصيل",
-        "الحالة",
-        "الإجمالي",
-        "التاريخ",
+        "رمز الطلب", "الاسم", "الهاتف", "المنتج", "المقاس", "اللون", "الكمية",
+        "الولاية", "البلدية", "نوع التوصيل", "الحالة", "الإجمالي", "التاريخ",
     ])
 
     for o in Order.objects.select_related("product", "variant").order_by("-created_at"):
@@ -406,3 +377,11 @@ def customers_list(request):
         "page_title": "الزبونات",
         "customers": customers,
     })
+
+
+@admin_only
+def order_delete(request, code):
+    order = get_object_or_404(Order, code=code)
+    order.delete()
+    messages.success(request, "تم حذف الطلب بنجاح.")
+    return redirect("dashboard_orders")

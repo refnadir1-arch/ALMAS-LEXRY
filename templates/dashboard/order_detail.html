@@ -1,5 +1,6 @@
 {% extends "dashboard/base.html" %}
 {% load money %}
+{% load order_badges %}
 
 {% block content %}
 <h1>تفاصيل الطلب {{ order.code }}</h1>
@@ -23,11 +24,17 @@
     <p><strong>السعر:</strong> {{ order.unit_price_dzd|dzd }}</p>
     <p><strong>الشحن:</strong> {{ order.shipping_fee_dzd|dzd }}</p>
     <p><strong>الإجمالي:</strong> {{ order.total_dzd|dzd }}</p>
+    <p>
+      <strong>الحالة الحالية:</strong>
+      <span class="status-badge {{ order.status|order_status_class }}">
+        {{ order.get_status_display }}
+      </span>
+    </p>
   </div>
 </div>
 
 <div class="dashboard-section">
-  <h3>تحديث الحالة</h3>
+  <h3>تحديث حالة الطلب</h3>
   <form method="post" class="dash-form">
     {% csrf_token %}
     {{ form.as_p }}
@@ -36,7 +43,7 @@
 </div>
 
 <div class="dashboard-section">
-  <h3>سجل الحالات</h3>
+  <h3>سجل حالات الطلب</h3>
   <table class="dash-table">
     <thead>
       <tr>
@@ -49,10 +56,18 @@
     <tbody>
       {% for item in history %}
       <tr>
-        <td>{{ item.get_status_display }}</td>
+        <td>
+          <span class="status-badge {{ item.status|order_status_class }}">
+            {{ item.get_status_display }}
+          </span>
+        </td>
         <td>{{ item.note|default:"—" }}</td>
         <td>{{ item.changed_by|default:"النظام" }}</td>
         <td>{{ item.changed_at|date:"Y-m-d H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4">لا يوجد سجل حالات بعد.</td>
       </tr>
       {% endfor %}
     </tbody>

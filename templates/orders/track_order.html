@@ -1,44 +1,55 @@
 {% extends "base.html" %}
 {% load money %}
+{% load order_badges %}
 
 {% block content %}
 <section class="section">
-  <div class="section-head">
+  <div class="section-head center-head">
     <h1>تتبع الطلب</h1>
+    <p class="muted">أدخلي رقم الهاتف ورمز الطلب لمعرفة حالته الحالية</p>
   </div>
 
-  <div class="card">
-    <form method="post" class="form">
+  <div class="lux-form-card" style="max-width:700px;margin:0 auto;">
+    <form method="post" class="lux-form">
       {% csrf_token %}
-      <div class="form-row">
+
+      <div class="lux-form-group">
         <label>رقم الهاتف</label>
         {{ form.phone }}
       </div>
 
-      <div class="form-row">
+      <div class="lux-form-group">
         <label>رمز الطلب</label>
         {{ form.code }}
       </div>
 
-      <button class="btn btn-primary" type="submit">تتبع</button>
+      <button class="btn btn-primary w-full" type="submit">تتبع الطلب</button>
     </form>
   </div>
 
   {% if order %}
-    <div class="card mt-24">
+    <div class="lux-form-card" style="max-width:900px;margin:24px auto 0;">
       <h2>تفاصيل الطلب</h2>
-      <div class="order-detail-grid">
-        <p><strong>رمز الطلب:</strong> {{ order.code }}</p>
-        <p><strong>الاسم:</strong> {{ order.full_name }}</p>
-        <p><strong>الهاتف:</strong> {{ order.phone }}</p>
-        <p><strong>المنتج:</strong> {{ order.product.name }}</p>
-        <p><strong>المقاس:</strong> {{ order.variant.size }}</p>
-        <p><strong>اللون:</strong> {{ order.variant.color }}</p>
-        <p><strong>الولاية:</strong> {{ order.wilaya_name_ar }}</p>
-        <p><strong>البلدية:</strong> {{ order.commune_name_ar }}</p>
-        <p><strong>الكمية:</strong> {{ order.qty }}</p>
-        <p><strong>الإجمالي:</strong> {{ order.total_dzd|dzd }}</p>
-        <p><strong>الحالة الحالية:</strong> {{ order.get_status_display }}</p>
+
+      <div class="detail-meta-box" style="margin-top:20px;">
+        <div class="meta-row"><span>رمز الطلب</span><strong>{{ order.code }}</strong></div>
+        <div class="meta-row"><span>الاسم</span><strong>{{ order.full_name }}</strong></div>
+        <div class="meta-row"><span>الهاتف</span><strong>{{ order.phone }}</strong></div>
+        <div class="meta-row"><span>المنتج</span><strong>{{ order.product.name }}</strong></div>
+        <div class="meta-row"><span>المقاس</span><strong>{{ order.variant.size }}</strong></div>
+        <div class="meta-row"><span>اللون</span><strong>{{ order.variant.color }}</strong></div>
+        <div class="meta-row"><span>الولاية</span><strong>{{ order.wilaya_name_ar }}</strong></div>
+        <div class="meta-row"><span>البلدية</span><strong>{{ order.commune_name_ar }}</strong></div>
+        <div class="meta-row"><span>الكمية</span><strong>{{ order.qty }}</strong></div>
+        <div class="meta-row"><span>الإجمالي</span><strong>{{ order.total_dzd|dzd }}</strong></div>
+        <div class="meta-row">
+          <span>الحالة الحالية</span>
+          <strong>
+            <span class="status-badge {{ order.status|order_status_class }}">
+              {{ order.get_status_display }}
+            </span>
+          </strong>
+        </div>
       </div>
 
       <hr class="separator">
@@ -47,15 +58,21 @@
       <div class="timeline">
         {% for h in history %}
           <div class="timeline-item">
-            <strong>{{ h.get_status_display }}</strong>
-            <p>{{ h.note }}</p>
+            <strong>
+              <span class="status-badge {{ h.status|order_status_class }}">
+                {{ h.get_status_display }}
+              </span>
+            </strong>
+            <p>{{ h.note|default:"" }}</p>
             <span>{{ h.changed_at|date:"Y-m-d H:i" }}</span>
           </div>
+        {% empty %}
+          <p class="muted">لا يوجد سجل حالات بعد.</p>
         {% endfor %}
       </div>
     </div>
   {% elif request.method == "POST" %}
-    <div class="card mt-24">
+    <div class="lux-form-card" style="max-width:700px;margin:24px auto 0;">
       <p class="muted">لم يتم العثور على الطلب.</p>
     </div>
   {% endif %}

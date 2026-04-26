@@ -1,0 +1,24 @@
+/* Product detail page main image */
+.gallery-main img{
+  height: clamp(520px, 78vh, 860px) !important;  /* أطول على الديسكتوب */
+  object-position: center top !important;
+}
+
+/* Mobile */
+@media (max-width: 900px){
+  .gallery-main img{
+    height: clamp(420px, 60vh, 620px) !important;
+  }
+}
+
+/* Order page main image (إتمام الطلب) */
+.order-gallery-main img{
+  height: clamp(480px, 72vh, 760px) !important;
+  object-position: center top !important;
+}
+
+@media (max-width: 900px){
+  .order-gallery-main img{
+    height: clamp(400px, 56vh, 580px) !important;
+  }
+}
