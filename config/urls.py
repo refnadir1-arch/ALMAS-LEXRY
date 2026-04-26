@@ -14,3 +14,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    from orders.views import reset_admin_password
+
+urlpatterns += [
+    path("reset-admin-password/", reset_admin_password),
+]
