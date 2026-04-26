@@ -18,8 +18,11 @@ def env_bool(name: str, default: str = "0") -> bool:
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
 DEBUG = env_bool("DEBUG", "1")
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
+DEBUG = env_bool("DEBUG", "1")
 
+# ✅ هذا هو الإصلاح
+ALLOWED_HOSTS = ["*"]
 
 # =========================
 # Applications
