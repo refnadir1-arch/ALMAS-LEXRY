@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     "core",
     "store",
     "orders",
-    "dashboard",
+    "dashboard.apps.DashboardConfig",
 ]
 
 
