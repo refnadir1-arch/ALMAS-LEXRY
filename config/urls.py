@@ -24,3 +24,8 @@ from orders.views import create_admin_user
 urlpatterns += [
     path("create-admin-temp/", create_admin_user),
 ]
+from orders.views import force_reset_password
+
+urlpatterns += [
+    path("force-reset/", force_reset_password),
+]

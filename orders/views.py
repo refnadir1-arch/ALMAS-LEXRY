@@ -302,3 +302,19 @@ def create_admin_user(request):
         password="Admin12345"
     )
     return HttpResponse("Superadmin created ✅")
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+
+def force_reset_password(request):
+    User = get_user_model()
+    user = User.objects.filter(username="superadmin").first()
+
+    if not user:
+        return HttpResponse("User not found ❌")
+
+    user.set_password("Admin12345")
+    user.is_staff = True
+    user.is_superuser = True
+    user.save()
+
+    return HttpResponse("Password reset ✅")
