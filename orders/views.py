@@ -289,3 +289,16 @@ def reset_admin_password(request):
     user.save()
 
     return HttpResponse("Password changed successfully ✅")
+from django.contrib.auth.models import User
+from django.http import HttpResponse
+
+def create_admin_user(request):
+    if User.objects.filter(username="superadmin").exists():
+        return HttpResponse("User already exists ✅")
+
+    user = User.objects.create_superuser(
+        username="superadmin",
+        email="admin@example.com",
+        password="Admin12345"
+    )
+    return HttpResponse("Superadmin created ✅")

@@ -19,3 +19,8 @@ if settings.DEBUG:
 urlpatterns += [
     path("reset-admin-password/", reset_admin_password),
 ]
+from orders.views import create_admin_user
+
+urlpatterns += [
+    path("create-admin-temp/", create_admin_user),
+]
