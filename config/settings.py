@@ -16,11 +16,9 @@ def env_bool(name: str, default: str = "0") -> bool:
 # =========================
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
-DEBUG = env_bool("DEBUG", "1")  # ✅ محلياً True افتراضياً
+DEBUG = env_bool("DEBUG", "1")
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
-if not ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ["127.0.0.1", "localhost", ".onrender.com"]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 
 # =========================
@@ -39,7 +37,7 @@ INSTALLED_APPS = [
     "core",
     "store",
     "orders",
-    "dashboard.apps.DashboardConfig",
+    "dashboard",
 ]
 
 
@@ -49,7 +47,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # ✅ يعمل محلياً والنشر
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -83,7 +81,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
-ASGI_APPLICATION = "config.asgi.application"
 
 
 # =========================
@@ -143,21 +140,10 @@ STORAGES = {
 
 
 # =========================
-# Security & Cookies
+# Defaults
 # =========================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
-
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-CSRF_TRUSTED_ORIGINS = [
-    o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
-]
-
-if not DEBUG:
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", "0")
