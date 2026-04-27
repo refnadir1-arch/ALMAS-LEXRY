@@ -13,10 +13,10 @@ load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
 
-# في Render يجب وضع DEBUG=0 في Environment
+# في Render ضع DEBUG=0 في Environment
 DEBUG = os.getenv("DEBUG", "0") == "1"
 
-# ✅ هذا هو الحل النهائي لمنع 400
+# ✅ يمنع 400 على Render
 ALLOWED_HOSTS = ["*"]
 
 
