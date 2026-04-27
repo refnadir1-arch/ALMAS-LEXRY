@@ -49,7 +49,6 @@ class Product(models.Model):
     seo_description = models.TextField(blank=True, default="", verbose_name="وصف SEO")
 
     is_active = models.BooleanField(default=True)
-
     sales_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -91,9 +90,15 @@ class Product(models.Model):
 
     @property
     def primary_image(self):
-        img = self.images.filter(is_primary=True).first() or self.images.first()
-        if img and img.image:
-            return img.image.url
+        """
+        آمن للنشر: لا يسمح بأي خطأ Storage أن يكسر الموقع.
+        """
+        try:
+            img = self.images.filter(is_primary=True).first() or self.images.first()
+            if img and img.image:
+                return img.image.url
+        except Exception:
+            pass
         return ""
 
     def get_absolute_url(self):
@@ -115,7 +120,7 @@ class ProductImage(models.Model):
 
 class Variant(models.Model):
     SIZE_CHOICES = [
-        ("STD", "مقاس موحد"),   # جديد
+        ("STD", "مقاس موحد"),
         ("XS", "XS"),
         ("S", "S"),
         ("M", "M"),
@@ -126,7 +131,6 @@ class Variant(models.Model):
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
 
-    # صار غير إجباري + افتراضي "STD"
     size = models.CharField(
         max_length=5,
         choices=SIZE_CHOICES,
@@ -159,7 +163,6 @@ class Variant(models.Model):
         return f"{self.product.name} - {size} - {self.color}"
 
     def save(self, *args, **kwargs):
-        # لو جاء فارغ من الفورم نخليه "STD"
         if not self.size:
             self.size = "STD"
         super().save(*args, **kwargs)
