@@ -16,9 +16,10 @@ def env_bool(name: str, default: str = "0") -> bool:
 # =========================
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
-DEBUG = env_bool("DEBUG", "1")
 
-ALLOWED_HOSTS = ["*"]
+DEBUG = env_bool("DEBUG", "0")  # ✅ في Render لازم 0
+
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
 
 # =========================
@@ -88,8 +89,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 # =========================
 
 DATABASES = {
-    "default": dj_database_url.parse(
-        os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
     )
 }
@@ -122,7 +123,6 @@ USE_TZ = True
 # =========================
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
@@ -139,10 +139,17 @@ STORAGES = {
 
 
 # =========================
-# Defaults
+# Security
 # =========================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
