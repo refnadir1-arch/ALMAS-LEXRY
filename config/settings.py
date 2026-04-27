@@ -18,11 +18,8 @@ def env_bool(name: str, default: str = "0") -> bool:
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
 DEBUG = env_bool("DEBUG", "1")
 
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
-DEBUG = env_bool("DEBUG", "1")
-
-# ✅ هذا هو الإصلاح
 ALLOWED_HOSTS = ["*"]
+
 
 # =========================
 # Applications
@@ -131,7 +128,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# ✅ مهم جداً في Django 5
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -150,13 +146,3 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
-import sys
-if "runserver" not in sys.argv:
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-    if not User.objects.filter(username="admin").exists():
-        User.objects.create_superuser(
-            username="admin",
-            email="admin@example.com",
-            password="Admin12345"
-        )
