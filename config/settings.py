@@ -7,19 +7,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 
-def env_bool(name: str, default: str = "0") -> bool:
-    return os.getenv(name, default).strip().lower() in ("1", "true", "yes", "on")
-
-
 # =========================
 # Core
 # =========================
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
 
-DEBUG = env_bool("DEBUG", "0")  # ✅ في Render لازم 0
+# في Render يجب وضع DEBUG=0 في Environment
+DEBUG = os.getenv("DEBUG", "0") == "1"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+# ✅ هذا هو الحل النهائي لمنع 400
+ALLOWED_HOSTS = ["*"]
 
 
 # =========================
