@@ -104,7 +104,7 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to="products/")
+    image = models.ImageField(upload_to="static/products/")
     is_primary = models.BooleanField(default=False)
 
     class Meta:
@@ -138,8 +138,7 @@ class Variant(models.Model):
 
     color = models.CharField(max_length=50, verbose_name="اللون")
 
-    color_image = models.ImageField(
-        upload_to="variants/",
+    color_image = models.ImageField(upload_to="static/variants/",
         null=True,
         blank=True,
         verbose_name="صورة اللون"
