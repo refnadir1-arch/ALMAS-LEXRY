@@ -318,3 +318,15 @@ def force_reset_password(request):
     user.save()
 
     return HttpResponse("Password reset ✅")
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+
+def create_admin_temp(request):
+    User = get_user_model()
+    if not User.objects.filter(username="admin").exists():
+        User.objects.create_superuser(
+            username="admin",
+            email="admin@example.com",
+            password="Admin12345"
+        )
+    return HttpResponse("Admin created ✅")
