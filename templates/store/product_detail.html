@@ -1,102 +1,144 @@
 ﻿{% extends "base.html" %}
-{% load static %}
 {% load money %}
 
-{% block extra_head %}
-
-<style> .pd-wrap{ padding: 28px 0 10px; } .pd-grid{ display:grid; grid-template-columns: 1fr 1.15fr; gap:24px; align-items:start; } @media (max-width: 991px){ .pd-grid{ grid-template-columns:1fr; } } .pd-card{ background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)), radial-gradient(circle at top center, rgba(194,24,91,.06), transparent 60%); border:1px solid rgba(212,180,120,.16); border-radius:24px; padding:26px; box-shadow: var(--shadow); } .pd-title{ margin:0 0 10px; font-size:34px; line-height:1.25; color:#fff; } .pd-rating{ color:var(--gold); font-weight:800; margin-bottom:14px; font-size:14px; } .pd-price-row{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin:14px 0 18px; } .pd-price-now{ font-size:34px; font-weight:900; color:var(--pink); } .pd-price-old{ font-size:18px; text-decoration:line-through; color:var(--muted); } .pd-discount-pill{ background:#28d17c; color:#08130c; font-weight:900; border-radius:999px; padding:6px 10px; font-size:13px; } .pd-desc{ color:var(--muted); font-size:16px; line-height:2; margin:12px 0 16px; } /* Gallery */ .gallery-main{ position:relative; border-radius:24px; overflow:hidden; background: rgba(0,0,0,.12); border:1px solid rgba(212,180,120,.14); box-shadow: var(--shadow); } #productMainImage{ width:100% !important; height: 860px !important; object-fit: cover !important; object-position: center top !important; display:block !important; background:#120d12; } @media (max-width: 900px){ #productMainImage{ height: 620px !important; } } .gallery-nav{ position:absolute; top:50%; transform:translateY(-50%); width:44px;height:44px; border-radius:999px; border:0; cursor:pointer; background: rgba(255,47,138,.85); color:#fff; font-size:22px; display:flex; align-items:center; justify-content:center; z-index:2; } .gallery-nav.prev{ left:12px; } .gallery-nav.next{ right:12px; } .gallery-counter{ position:absolute; bottom:12px; left:12px; background: rgba(0,0,0,.45); color:#fff; padding:6px 10px; border-radius:999px; font-size:13px; z-index:2; } .gallery-thumbs{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; } .gallery-thumb{ border:2px solid transparent; border-radius:16px; padding:0; background:transparent; cursor:pointer; overflow:hidden; width:92px; height:92px; } .gallery-thumb img{ width:100%; height:100%; object-fit:cover; display:block; } .gallery-thumb.is-active{ border-color:#ff2f8a; } /* Variant UI */ .pd-variant-block{ margin-top:8px; } .pd-variant-title{ margin:0 0 10px; font-size:18px; font-weight:900; color:#ff4da0; } .pd-selected{ margin:0 0 12px; color:var(--muted); font-size:14px; } .variant-cards{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; } @media (max-width: 991px){ .variant-cards{ grid-template-columns:repeat(2, minmax(0,1fr)); } } .variant-card{ border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.02); cursor:pointer; padding:0; text-align:center; transition:.2s ease; position:relative; } .variant-card:hover{ transform: translateY(-2px); border-color: rgba(212,180,120,.25); } .variant-card.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); } .variant-card img{ width:100%; height:110px; object-fit:cover; display:block; background:#120d12; } .variant-card span{ display:block; padding:10px 10px 12px; font-weight:900; font-size:13px; color:#ff4da0; } .variant-card.is-disabled{ opacity:.45; cursor:not-allowed; } .size-chips{ display:flex; gap:10px; flex-wrap:wrap; } .size-chip{ border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.02); color:#fff; font-weight:900; padding:10px 14px; border-radius:999px; cursor:pointer; transition:.2s ease; } .size-chip.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); } .size-chip.is-disabled{ opacity:.45; cursor:not-allowed; } /* Qty */ .pd-qty{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-radius:18px; background: rgba(255,255,255,.03); border:1px solid var(--line); margin: 16px 0 18px; } .qty-ctrl{ display:flex; align-items:center; gap:10px; } .qty-btn{ width:42px;height:42px; border-radius:12px; border:1px solid rgba(255,255,255,.10); background:#140f15; color:#fff; cursor:pointer; font-size:18px; font-weight:900; } .qty-value{ min-width:34px; text-align:center; font-weight:900; color:var(--pink); } .pd-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; } .pd-actions .btn{ width:100%; } @media(min-width: 992px){ .pd-actions .btn{ width:auto; flex:1; } } </style>
-{% endblock %}
-
 {% block content %}
+<section class="product-detail-page">
+  <div class="product-detail-grid">
+    <div class="detail-media-column">
+      <div class="product-media large">
+        {% if product.primary_image %}
+          <img src="{{ product.primary_image }}" alt="{{ product.name }}">
+        {% endif %}
+      </div>
 
-<section class="pd-wrap"> <div class="pd-grid">
-text
-
-<div class="pd-card">
-  {% if product.category %}
-    <p class="detail-category" style="margin:0 0 8px;">{{ product.category.name }}</p>
-  {% endif %}
-
-  <h1 class="pd-title">{{ product.name }}</h1>
-  <div class="pd-rating">★★★★★ <span style="color:var(--muted); font-weight:800;">(+100 تقييم)</span></div>
-
-  <div class="pd-price-row">
-    <span class="pd-price-now">{{ product.final_price_dzd|dzd }}</span>
-    {% if product.has_discount %}
-      <span class="pd-price-old">{{ product.compare_at_price_dzd|dzd }}</span>
-      <span class="pd-discount-pill">خصم {{ product.discount_percent }}%</span>
-    {% endif %}
-  </div>
-
-  <div class="pd-desc">{{ product.description|linebreaks }}</div>
-
-  <div class="pd-variant-block">
-    <div class="pd-variant-title">اختري اللون:</div>
-    <p class="pd-selected">اللون: <strong id="selectedColorLabel">—</strong></p>
-
-    <div class="variant-cards" id="colorCards">
-      {% for c in color_options %}
-        <button type="button"
-                class="variant-card {% if not c.has_stock %}is-disabled{% endif %}"
-                data-color="{{ c.color }}"
-                data-color-img="{% if c.img %}{{ c.img }}{% elif product.primary_image %}{{ product.primary_image }}{% endif %}">
-          <img src="{% if c.img %}{{ c.img }}{% elif product.primary_image %}{{ product.primary_image }}{% endif %}"
-               alt="{{ c.color }}" loading="lazy">
-          <span>{{ c.color }}</span>
-        </button>
-      {% endfor %}
-    </div>
-  </div>
-
-  <div class="pd-variant-block" id="sizeBlock" style="display:none;">
-    <div class="pd-variant-title">اختري المقاس:</div>
-    <p class="pd-selected">المقاس: <strong id="selectedSizeLabel">—</strong></p>
-    <div class="size-chips" id="sizeChips"></div>
-  </div>
-
-  <div class="pd-qty">
-    <strong>الكمية:</strong>
-    <div class="qty-ctrl">
-      <button type="button" class="qty-btn" id="qtyMinus">-</button>
-      <div class="qty-value" id="qtyValue">1</div>
-      <button type="button" class="qty-btn" id="qtyPlus">+</button>
-    </div>
-  </div>
-
-  <div class="pd-actions">
-    <a id="orderBtn"
-       data-base-href="{% url 'direct_order' product.id %}"
-       href="{% url 'direct_order' product.id %}"
-       class="btn btn-primary large-btn">اضغط للطلب</a>
-
-    <a href="{% url 'store' %}" class="btn btn-outline">العودة إلى المنتجات</a>
-  </div>
-</div>
-
-<div>
-  <div class="product-gallery" data-product-gallery>
-    <div class="gallery-main">
-      <button type="button" class="gallery-nav prev" data-gallery-prev aria-label="الصورة السابقة">‹</button>
-
-      <img id="productMainImage"
-           src="{% if product.primary_image %}{{ product.primary_image }}{% endif %}"
-           alt="{{ product.name }}">
-
-      <button type="button" class="gallery-nav next" data-gallery-next aria-label="الصورة التالية">›</button>
-      <div class="gallery-counter" data-gallery-counter></div>
+      {% if product.video_url %}
+        <div class="video-box">
+          <h3>فيديو المنتج</h3>
+          <div class="video-wrapper">
+            <iframe
+              src="{{ product.video_url }}"
+              title="{{ product.name }}"
+              frameborder="0"
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+      {% endif %}
     </div>
 
-    <div class="gallery-thumbs" data-gallery-thumbs>
-      {% for img in product.images.all %}
-        <button type="button" class="gallery-thumb" data-gallery-thumb data-large="{{ img.image.url }}">
-          <img src="{{ img.image.url }}" alt="{{ product.name }}" loading="lazy">
-        </button>
-      {% endfor %}
+    <div class="detail-info-column">
+      <div class="product-detail-card">
+        {% if product.category %}
+          <p class="detail-category">{{ product.category.name }}</p>
+        {% endif %}
+
+        <h1>{{ product.name }}</h1>
+
+        <div class="detail-price-row">
+          <span class="detail-current-price">{{ product.final_price_dzd|dzd }}</span>
+
+          {% if product.has_discount %}
+            <span class="detail-old-price">{{ product.compare_at_price_dzd|dzd }}</span>
+            <span class="lux-badge discount-badge">-{{ product.discount_percent }}%</span>
+          {% endif %}
+        </div>
+
+        <div class="product-description-box">
+          {{ product.description|linebreaks }}
+        </div>
+
+        <div class="detail-meta-box">
+          {% if product.sku %}
+            <div class="meta-row">
+              <span>رمز المنتج</span>
+              <strong>{{ product.sku }}</strong>
+            </div>
+          {% endif %}
+          <div class="meta-row">
+            <span>الدفع</span>
+            <strong>عند الاستلام فقط</strong>
+          </div>
+        </div>
+
+        <div class="variant-showcase">
+          <h3>المقاسات والألوان المتوفرة</h3>
+
+          <div class="variant-badges-grid">
+            {% for v in variants %}
+              <div class="variant-badge-card {% if v.stock > 0 %}available-card{% else %}unavailable-card{% endif %}">
+                <div class="variant-main-line">
+                  <span class="variant-size">{{ v.size }}</span>
+                  <span class="variant-sep">—</span>
+                  <span class="variant-color">{{ v.color }}</span>
+                </div>
+
+                {% if v.stock > 0 %}
+                  <span class="lux-badge limited-badge">الكمية محدودة</span>
+                {% else %}
+                  <span class="lux-badge unavailable-badge">غير متوفر</span>
+                {% endif %}
+              </div>
+            {% empty %}
+              <div class="empty-box">لا توجد خيارات حالياً.</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          <a href="{% url 'direct_order' product.id %}" class="btn btn-primary large-btn">اضغط للطلب</a>
+          <a href="{% url 'store' %}" class="btn btn-outline">العودة إلى المنتجات</a>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-</div> </section>
-{{ variants_data|json_script:"variants-data" }}
+</section>
+
+{% if related %}
+<section class="section">
+  <div class="section-head">
+    <h2>منتجات مشابهة</h2>
+  </div>
+
+  <div class="product-grid">
+    {% for p in related %}
+      <div class="product-card luxury-card">
+        <a href="{{ p.get_absolute_url }}">
+          <div class="product-media">
+            {% if p.primary_image %}
+              <img src="{{ p.primary_image }}" alt="{{ p.name }}" loading="lazy">
+            {% endif %}
+          </div>
+        </a>
+
+        <div class="product-body">
+          <h3><a href="{{ p.get_absolute_url }}">{{ p.name }}</a></h3>
+
+          <div class="product-price">
+            <span class="price-current">{{ p.final_price_dzd|dzd }}</span>
+            {% if p.has_discount %}
+              <span class="price-old">{{ p.compare_at_price_dzd|dzd }}</span>
+              <span class="badge">-{{ p.discount_percent }}%</span>
+            {% endif %}
+          </div>
+
+          <a href="{% url 'direct_order' p.id %}" class="btn btn-primary w-full">اضغط للطلب</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
+{% if META_PIXEL_ID %}
+<script>
+  fbq('track', 'ViewContent', {
+    content_name: '{{ product.name|escapejs }}',
+    content_type: 'product',
+    value: '{{ product.final_price_dzd }}',
+    currency: 'DZD'
+  });
+</script>
+{% endif %}
+{% endblock %}

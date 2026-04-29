@@ -12,17 +12,7 @@ load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
 DEBUG = os.getenv("DEBUG", "0") == "1"
-
-ALLOWED_HOSTS = [
-    ".onrender.com",
-    "localhost",
-    "127.0.0.1",
-]
-
-# 🔥 حل مشكلة CSRF
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.onrender.com",
-]
+ALLOWED_HOSTS = ["*"]
 
 # =========================
 # Applications
@@ -112,7 +102,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # =========================
-# Cloudinary Setup
+# Cloudinary Setup 🔥
 # =========================
 
 import cloudinary
@@ -125,7 +115,7 @@ cloudinary.config(
 )
 
 # =========================
-# Django 5 STORAGES
+# Django 5 STORAGES (مهم جدًا)
 # =========================
 
 STORAGES = {
@@ -137,18 +127,12 @@ STORAGES = {
     },
 }
 
-# =========================
-# Security (Production)
-# =========================
+# ❌ احذف MEDIA_URL (ما تحتاجوش مع Cloudinary)
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
-
-# =========================
-# Default
-# =========================
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
