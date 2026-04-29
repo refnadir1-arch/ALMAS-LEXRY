@@ -136,22 +136,6 @@
   </div>
 </section>
 
-<section class="section">
-  <div class="section-head">
-    <h2>الأقسام</h2>
-    <a href="{% url 'store' %}" class="section-link">عرض الكل</a>
-  </div>
-
-  <div class="category-grid">
-    {% for category in categories %}
-      <a href="{% url 'store' %}?category={{ category.slug }}" class="category-card luxury-category-card">
-        <strong>{{ category.name }}</strong>
-      </a>
-    {% empty %}
-      <div class="empty-box">لا توجد أقسام حالياً.</div>
-    {% endfor %}
-  </div>
-</section>
 
 <section class="section">
   <div class="section-head">
