@@ -11,10 +11,18 @@ load_dotenv(BASE_DIR / ".env")
 # =========================
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
-
 DEBUG = os.getenv("DEBUG", "0") == "1"
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    ".onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
+
+# 🔥 حل مشكلة CSRF
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.onrender.com",
+]
 
 # =========================
 # Applications
@@ -28,6 +36,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+
+    # 🔥 Cloudinary
+    "cloudinary",
+    "cloudinary_storage",
 
     "core",
     "store",
@@ -92,7 +104,7 @@ USE_I18N = True
 USE_TZ = True
 
 # =========================
-# Static
+# Static (WhiteNoise)
 # =========================
 
 STATIC_URL = "/static/"
@@ -100,26 +112,43 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # =========================
-# Media
+# Cloudinary Setup
 # =========================
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+import cloudinary
 
-# ✅ مهم في Django 5
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    secure=True,
+)
+
+# =========================
+# Django 5 STORAGES
+# =========================
+
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# =========================
+# Security (Production)
+# =========================
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+
+# =========================
+# Default
+# =========================
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

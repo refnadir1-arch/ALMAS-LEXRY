@@ -1,7 +1,11 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from cloudinary.models import CloudinaryField  # 🔥 مهم
 
+# =========================
+# Category
+# =========================
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -17,6 +21,10 @@ class Category(models.Model):
         return self.name
 
 
+# =========================
+# Product
+# =========================
+
 class Product(models.Model):
     category = models.ForeignKey(
         Category,
@@ -31,16 +39,8 @@ class Product(models.Model):
     description = models.TextField(blank=True)
 
     price_dzd = models.PositiveIntegerField(verbose_name="السعر")
-    compare_at_price_dzd = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        verbose_name="السعر قبل التخفيض"
-    )
-    cost_price_dzd = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        verbose_name="سعر التكلفة"
-    )
+    compare_at_price_dzd = models.PositiveIntegerField(null=True, blank=True, verbose_name="السعر قبل التخفيض")
+    cost_price_dzd = models.PositiveIntegerField(null=True, blank=True, verbose_name="سعر التكلفة")
 
     video_url = models.URLField(blank=True, default="", verbose_name="رابط الفيديو")
     sku = models.CharField(max_length=120, blank=True, default="", verbose_name="SKU")
@@ -102,9 +102,16 @@ class Product(models.Model):
         return reverse("product_detail", kwargs={"slug": self.slug})
 
 
+# =========================
+# Product Images 🔥
+# =========================
+
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to="products/")  # ✅ رجعنا طبيعي
+
+    # 🔥 هنا التغيير المهم
+    image = CloudinaryField("image")
+
     is_primary = models.BooleanField(default=False)
 
     class Meta:
@@ -114,6 +121,10 @@ class ProductImage(models.Model):
     def __str__(self):
         return f"صورة - {self.product.name}"
 
+
+# =========================
+# Variants 🔥
+# =========================
 
 class Variant(models.Model):
     SIZE_CHOICES = [
@@ -138,11 +149,11 @@ class Variant(models.Model):
 
     color = models.CharField(max_length=50, verbose_name="اللون")
 
-    color_image = models.ImageField(
-        upload_to="variants/",  # ✅ رجعنا طبيعي
+    # 🔥 هنا أيضًا
+    color_image = CloudinaryField(
+        "image",
         null=True,
-        blank=True,
-        verbose_name="صورة اللون"
+        blank=True
     )
 
     stock = models.PositiveIntegerField(default=0, verbose_name="المخزون")
