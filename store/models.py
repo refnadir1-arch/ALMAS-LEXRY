@@ -90,9 +90,6 @@ class Product(models.Model):
 
     @property
     def primary_image(self):
-        """
-        آمن للنشر: لا يسمح بأي خطأ Storage أن يكسر الموقع.
-        """
         try:
             img = self.images.filter(is_primary=True).first() or self.images.first()
             if img and img.image:
@@ -105,12 +102,10 @@ class Product(models.Model):
         return reverse("product_detail", kwargs={"slug": self.slug})
 
 
-class Variant(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
-    size = models.CharField(max_length=5, blank=True, default="STD")
-    color = models.CharField(max_length=50)
-    color_image = models.ImageField(upload_to="variants/", blank=True, null=True)
-    stock = models.PositiveIntegerField(default=0)
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to="products/")
+    is_primary = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "صورة منتج"
@@ -144,7 +139,7 @@ class Variant(models.Model):
     color = models.CharField(max_length=50, verbose_name="اللون")
 
     color_image = models.ImageField(
-        upload_to="variants/%Y/%m/",
+        upload_to="variants/",
         null=True,
         blank=True,
         verbose_name="صورة اللون"
@@ -163,11 +158,6 @@ class Variant(models.Model):
     def __str__(self):
         size = self.size or "STD"
         return f"{self.product.name} - {size} - {self.color}"
-
-    def save(self, *args, **kwargs):
-        if not self.size:
-            self.size = "STD"
-        super().save(*args, **kwargs)
 
     @property
     def is_available(self):

@@ -11,5 +11,5 @@ urlpatterns = [
     path("django-admin/", admin.site.urls),
 ]
 
-# ✅ مهم جدًا لخدمة الصور
+# ✅ خدمة الصور
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
