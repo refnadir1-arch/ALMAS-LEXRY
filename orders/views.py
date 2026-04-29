@@ -280,47 +280,6 @@ def shipping_info_api(request):
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 
-def reset_admin_password(request):
-    user = User.objects.filter(username="admin").first()
-    if not user:
-        return HttpResponse("Admin user not found")
-
-    user.set_password("NewStrongPassword123")
-    user.save()
-
-    return HttpResponse("Password changed successfully ✅")
-from django.contrib.auth.models import User
-from django.http import HttpResponse
-
-def create_admin_user(request):
-    if User.objects.filter(username="superadmin").exists():
-        return HttpResponse("User already exists ✅")
-
-    user = User.objects.create_superuser(
-        username="superadmin",
-        email="admin@example.com",
-        password="Admin12345"
-    )
-    return HttpResponse("Superadmin created ✅")
-from django.contrib.auth import get_user_model
-from django.http import HttpResponse
-
-def force_reset_password(request):
-    User = get_user_model()
-    user = User.objects.filter(username="superadmin").first()
-
-    if not user:
-        return HttpResponse("User not found ❌")
-
-    user.set_password("Admin12345")
-    user.is_staff = True
-    user.is_superuser = True
-    user.save()
-
-    return HttpResponse("Password reset ✅")
-from django.contrib.auth import get_user_model
-from django.http import HttpResponse
-
 def create_admin_temp(request):
     User = get_user_model()
     if not User.objects.filter(username="admin").exists():
@@ -330,3 +289,16 @@ def create_admin_temp(request):
             password="Admin12345"
         )
     return HttpResponse("Admin created ✅")
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+
+def create_admin_once(request):
+    User = get_user_model()
+    if not User.objects.filter(username="admin").exists():
+        User.objects.create_superuser(
+            username="admin",
+            email="admin@example.com",
+            password="Admin12345"
+        )
+        return HttpResponse("Admin created ✅")
+    return HttpResponse("Admin already exists ✅")
