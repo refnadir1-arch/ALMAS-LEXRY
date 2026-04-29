@@ -6,21 +6,10 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-# =========================
-# Core
-# =========================
-
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
-
-# في Render ضع DEBUG=0
 DEBUG = os.getenv("DEBUG", "0") == "1"
 
-# مهم جدًا لمنع 400
 ALLOWED_HOSTS = ["*"]
-
-# =========================
-# Applications
-# =========================
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -36,10 +25,6 @@ INSTALLED_APPS = [
     "orders",
     "dashboard",
 ]
-
-# =========================
-# Middleware
-# =========================
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -67,59 +52,34 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.store_settings",
             ],
-            "libraries": {
-                "money": "core.templatetags.money",
-                "order_badges": "dashboard.templatetags.order_badges",
-            },
         },
     },
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# =========================
-# Database
-# =========================
-
 DATABASES = {
     "default": dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
-        ssl_require=False,
     )
 }
-
-# =========================
-# Password validation
-# =========================
-
-AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
-]
-
-# =========================
-# Internationalization
-# =========================
 
 LANGUAGE_CODE = "ar"
 TIME_ZONE = "Africa/Algiers"
 USE_I18N = True
 USE_TZ = True
 
-# =========================
-# Static & Media
-# =========================
-
+# ✅ Static
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
+# ✅ Media (مهم جدًا)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# ✅ Storage (Django 5)
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -129,17 +89,6 @@ STORAGES = {
     },
 }
 
-# =========================
-# Security
-# =========================
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CSRF_COOKIE_SAMESITE = "Lax"
-SESSION_COOKIE_SAMESITE = "Lax"
-
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-if not DEBUG:
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SECURE = True

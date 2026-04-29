@@ -105,10 +105,12 @@ class Product(models.Model):
         return reverse("product_detail", kwargs={"slug": self.slug})
 
 
-class ProductImage(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to="products/%Y/%m/")
-    is_primary = models.BooleanField(default=False)
+class Variant(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
+    size = models.CharField(max_length=5, blank=True, default="STD")
+    color = models.CharField(max_length=50)
+    color_image = models.ImageField(upload_to="variants/", blank=True, null=True)
+    stock = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = "صورة منتج"
