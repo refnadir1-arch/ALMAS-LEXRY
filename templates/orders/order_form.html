@@ -33,6 +33,7 @@
     scroll-snap-type:x mandatory;
     scroll-behavior:smooth;
     -webkit-overflow-scrolling:touch;
+    direction:ltr;
   }
   .media-track::-webkit-scrollbar{ height:0; }
   .media-slide{
@@ -84,6 +85,7 @@
     overflow-x:auto;
     padding:10px 2px 0 2px;
     -webkit-overflow-scrolling:touch;
+    direction:ltr;
   }
   .media-thumbs::-webkit-scrollbar{ height:0; }
   .thumb-btn{
@@ -156,7 +158,6 @@
   .delivery-meta span{ display:block; font-size:13px; color: var(--muted); margin-top:4px; }
   .delivery-price{ font-weight:900; color: var(--gold); white-space:nowrap; }
 
-  /* نخفي select الحقيقي لأننا نتحكم به من خلال الكروت */
   select[name="delivery_type"]{ display:none; }
 
   /* ===== Variant Picker (Colors as images + Sizes as buttons) ===== */
@@ -360,40 +361,23 @@
       <div class="lux-product-media">
         <div class="media-slider" id="mediaSlider">
           <div class="media-track" id="mediaTrack" aria-label="صور المنتج">
-
-            {% with primary=product.primary_image.url|default:product.primary_image %}
-              {% if primary %}
-                <div class="media-slide">
-                  <img
-                    id="mainProductImage"
-                    data-role="main"
-                    src="{{ primary }}"
-                    alt="{{ product.name|escape }}"
-                    loading="lazy">
-                </div>
+            {% with imgs=product.images.all %}
+              {% if imgs|length %}
+                {% for im in imgs %}
+                  <div class="media-slide">
+                    <img
+                      {% if forloop.first %}id="mainProductImage" data-role="main"{% endif %}
+                      src="{{ im.image.url }}"
+                      alt="{{ product.name|escape }}"
+                      loading="lazy">
+                  </div>
+                {% endfor %}
               {% else %}
                 <div class="media-slide">
-                  <img
-                    id="mainProductImage"
-                    data-role="main"
-                    src=""
-                    alt="{{ product.name|escape }}"
-                    loading="lazy">
+                  <img id="mainProductImage" data-role="main" src="" alt="{{ product.name|escape }}" loading="lazy">
                 </div>
               {% endif %}
             {% endwith %}
-
-            {# صور إضافية إن كانت موجودة (حسب موديل الصور عندك) #}
-            {% for im in product.images.all %}
-              {% with u=im.image.url|default:im.image|default:im.url|default:im.file.url|default:im.file %}
-                {% if u %}
-                  <div class="media-slide">
-                    <img src="{{ u }}" alt="{{ product.name|escape }}" loading="lazy">
-                  </div>
-                {% endif %}
-              {% endwith %}
-            {% endfor %}
-
           </div>
 
           <button type="button" class="media-nav media-prev" id="mediaPrev" aria-label="الصورة السابقة">
@@ -420,9 +404,7 @@
           {% endif %}
         </div>
 
-        <div class="lux-product-note">
-          الدفع عند الاستلام فقط
-        </div>
+        <div class="lux-product-note">الدفع عند الاستلام فقط</div>
 
         <div class="lux-shipping-box">
           <div class="ship-row">
@@ -457,7 +439,6 @@
       <form method="post" class="lux-form" id="orderForm">
         {% csrf_token %}
 
-        {# Hidden fields used by backend #}
         {{ form.items_json }}
         {{ form.variant_id }}
 
@@ -487,6 +468,7 @@
                 <label style="margin-bottom:8px; display:block;">الكمية (للإضافة)</label>
                 <input
                   type="number"
+                  name="qty"
                   min="1"
                   max="5"
                   value="{{ form.qty.value|default:1 }}"
@@ -507,27 +489,6 @@
               <div class="cart-box" id="cartBox"></div>
               <div class="cart-msg" id="cartMsg" style="display:none;"></div>
             </div>
-
-            <noscript>
-              <div style="margin-top:12px;">
-                <div class="field-error">لتعمل صفحة اختيار اللون/المقاس والسلة بشكل كامل، يرجى تفعيل JavaScript.</div>
-
-                <label style="display:block; margin-top:10px;">المقاس واللون</label>
-                <select name="variant_id" required class="lux-input">
-                  <option value="">اختاري المقاس واللون</option>
-                  {% for v in variants %}
-                    <option value="{{ v.id }}"
-                      {% if form.variant_id.value|stringformat:"s" == v.id|stringformat:"s" %}selected{% endif %}
-                      {% if v.stock == 0 %}disabled{% endif %}>
-                      {{ v.size }} — {{ v.color }} {% if v.stock > 0 %}(الكمية محدودة){% else %}(غير متوفر){% endif %}
-                    </option>
-                  {% endfor %}
-                </select>
-
-                <label style="display:block; margin-top:10px;">الكمية</label>
-                <input type="number" name="qty" min="1" max="5" value="{{ form.qty.value|default:1 }}" required class="lux-input">
-              </div>
-            </noscript>
           </div>
 
           {% for e in form.variant_id.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
@@ -541,7 +502,6 @@
             <button type="button" class="delivery-card" data-delivery="OFFICE" aria-pressed="false">
               <div class="delivery-left">
                 <div class="delivery-icon" aria-hidden="true">
-                  {# Office / Building icon (professional outline) #}
                   <svg viewBox="0 0 24 24">
                     <path d="M3.5 21h17"/>
                     <path d="M6 21V4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21"/>
@@ -565,7 +525,6 @@
             <button type="button" class="delivery-card" data-delivery="HOME" aria-pressed="false">
               <div class="delivery-left">
                 <div class="delivery-icon" aria-hidden="true">
-                  {# Home icon (professional outline) #}
                   <svg viewBox="0 0 24 24">
                     <path d="M3 10.5L12 3l9 7.5"/>
                     <path d="M5.5 10.5V21h13V10.5"/>
@@ -656,6 +615,20 @@
     return Math.round(mediaTrack.scrollLeft / w);
   }
 
+  function updateNavState(idx){
+    const slides = getSlides();
+    const i = Math.max(0, Math.min(slides.length - 1, idx || 0));
+    const onlyOne = slides.length <= 1;
+    if (mediaPrev) mediaPrev.disabled = onlyOne || (i <= 0);
+    if (mediaNext) mediaNext.disabled = onlyOne || (i >= slides.length - 1);
+  }
+
+  function updateThumbActive(idx){
+    if (!mediaThumbs) return;
+    const buttons = Array.from(mediaThumbs.querySelectorAll('.thumb-btn'));
+    buttons.forEach((b, i) => b.classList.toggle('is-active', i === idx));
+  }
+
   function scrollToSlide(idx){
     const slides = getSlides();
     if (!slides.length || !mediaTrack) return;
@@ -664,19 +637,6 @@
     mediaTrack.scrollTo({ left: clamped * w, behavior: 'smooth' });
     updateThumbActive(clamped);
     updateNavState(clamped);
-  }
-
-  function updateNavState(idx){
-    const slides = getSlides();
-    const i = Math.max(0, Math.min(slides.length - 1, idx || 0));
-    if (mediaPrev) mediaPrev.disabled = (i <= 0);
-    if (mediaNext) mediaNext.disabled = (i >= slides.length - 1);
-  }
-
-  function updateThumbActive(idx){
-    if (!mediaThumbs) return;
-    const buttons = Array.from(mediaThumbs.querySelectorAll('.thumb-btn'));
-    buttons.forEach((b, i) => b.classList.toggle('is-active', i === idx));
   }
 
   function buildThumbs(){
@@ -729,14 +689,13 @@
 
   function updateMainGalleryImage(url){
     if (!url) return;
-    if (mainImg){
-      mainImg.src = String(url);
-    }
-    // حدّث صورة thumbnail الأولى أيضًا إن وجدت
+    if (mainImg) mainImg.src = String(url);
+
     if (mediaThumbs){
       const firstThumbImg = mediaThumbs.querySelector('.thumb-btn img');
       if (firstThumbImg) firstThumbImg.src = String(url);
     }
+    scrollToSlide(0);
   }
 
   // ===== Variant Picker + Cart =====
@@ -771,22 +730,17 @@
   const homeCard = document.querySelector('[data-delivery="HOME"]');
   const officeCard = document.querySelector('[data-delivery="OFFICE"]');
 
-  const submitBtn = document.getElementById('submitBtn');
-
   let selectedColor = null;
   let selectedSize = null;
 
   let lastShippingFee = 0;
   let shippingByWilayaCache = {};
 
-  // cart: Map<variant_id, qty>
-  const cart = new Map();
+  const cart = new Map(); // Map<variant_id, qty>
 
   const variantsById = (() => {
     const m = new Map();
-    for (const v of variants){
-      m.set(Number(v.id), v);
-    }
+    for (const v of variants) m.set(Number(v.id), v);
     return m;
   })();
 
@@ -823,8 +777,7 @@
   function clampQty(q){
     let n = parseInt(q, 10);
     if (Number.isNaN(n)) n = 1;
-    n = Math.max(1, Math.min(5, n));
-    return n;
+    return Math.max(1, Math.min(5, n));
   }
 
   function getUnitPrice(){
@@ -854,16 +807,22 @@
     for (const [vid, qty] of cart.entries()){
       items.push({variant_id: Number(vid), qty: Number(qty)});
     }
-
-    // ترتيب ثابت
     items.sort((a,b) => a.variant_id - b.variant_id);
 
     itemsJsonInput.value = items.length ? JSON.stringify(items) : "";
 
-    // للتوافق فقط (لا يعتمد عليه النظام الجديد)
     if (variantIdInput){
       variantIdInput.value = items.length ? String(items[0].variant_id) : "";
     }
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   function renderCart(){
@@ -929,7 +888,6 @@
       </table>
     `;
 
-    // bind events
     const tbody = cartBox.querySelector('tbody');
     if (tbody){
       tbody.addEventListener('click', (e) => {
@@ -948,8 +906,7 @@
 
         const action = btn.getAttribute('data-action');
         if (action === 'minus'){
-          const next = Math.max(1, current - 1);
-          cart.set(vid, next);
+          cart.set(vid, Math.max(1, current - 1));
           showCartMsg("", "");
           renderCart();
         }
@@ -985,11 +942,8 @@
         const desired = clampQty(input.value);
         const next = Math.min(desired, stock || desired);
 
-        if (next !== desired){
-          showCartMsg("تم تعديل الكمية لتناسب المخزون المتاح.", "warn");
-        }else{
-          showCartMsg("", "");
-        }
+        if (next !== desired) showCartMsg("تم تعديل الكمية لتناسب المخزون المتاح.", "warn");
+        else showCartMsg("", "");
 
         cart.set(vid, next);
         renderCart();
@@ -998,15 +952,6 @@
 
     syncHiddenInputs();
     updateTotals();
-  }
-
-  function escapeHtml(s){
-    return String(s)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
   }
 
   function groupByColor(){
@@ -1036,15 +981,12 @@
     const c = String(color || "");
     const s = String(size || "STD");
 
-    // مطابقة تامة
     let exact = variants.find(v => String(v.color) === c && String(v.size || "STD") === s);
     if (exact) return exact;
 
-    // fallback: أول متغير لنفس اللون متوفر
     let any = variants.find(v => String(v.color) === c && Number(v.stock || 0) > 0);
     if (any) return any;
 
-    // fallback أخير
     return variants.find(v => String(v.color) === c) || null;
   }
 
@@ -1067,7 +1009,6 @@
       btn.type = "button";
       btn.className = "color-option";
       btn.setAttribute("data-color", c.color);
-
       if (!c.anyStock) btn.classList.add("is-disabled");
 
       const img = document.createElement('img');
@@ -1116,7 +1057,6 @@
 
       const v = variants.find(x => String(x.color) === c && String(x.size || "STD") === s);
       const available = v && Number(v.stock || 0) > 0;
-
       if (!available) btn.classList.add("is-disabled");
 
       btn.addEventListener('click', () => {
@@ -1176,10 +1116,7 @@
     const v = findVariant(selectedColor, selectedSize || "STD");
     updateSelectedVariantHint(v);
 
-    // تبديل الصورة الرئيسية حسب اللون
-    if (v && v.img){
-      updateMainGalleryImage(String(v.img));
-    }
+    if (v && v.img) updateMainGalleryImage(String(v.img));
   }
 
   function setSelectedSize(size){
@@ -1189,14 +1126,11 @@
     const v = findVariant(selectedColor, selectedSize || "STD");
     updateSelectedVariantHint(v);
 
-    if (v && v.img){
-      updateMainGalleryImage(String(v.img));
-    }
+    if (v && v.img) updateMainGalleryImage(String(v.img));
   }
 
   function currentSelectedVariant(){
-    const v = findVariant(selectedColor, selectedSize || "STD");
-    return v || null;
+    return findVariant(selectedColor, selectedSize || "STD") || null;
   }
 
   function addCurrentSelectionToCart(){
@@ -1225,15 +1159,8 @@
     renderCart();
   }
 
-  if (addToCartBtn){
-    addToCartBtn.addEventListener('click', addCurrentSelectionToCart);
-  }
-
-  if (qtyInput){
-    qtyInput.addEventListener('input', () => {
-      qtyInput.value = String(clampQty(qtyInput.value));
-    });
-  }
+  if (addToCartBtn) addToCartBtn.addEventListener('click', addCurrentSelectionToCart);
+  if (qtyInput) qtyInput.addEventListener('input', () => { qtyInput.value = String(clampQty(qtyInput.value)); });
 
   // ===== Delivery UI =====
   function markActiveDelivery(v){
@@ -1261,7 +1188,6 @@
   async function fetchShippingInfo(wilayaCode){
     const code = String(wilayaCode || "").trim();
     if (!code) return null;
-
     if (shippingByWilayaCache[code]) return shippingByWilayaCache[code];
 
     const res = await fetch(`/api/shipping-info/?wilaya_code=${encodeURIComponent(code)}`);
@@ -1362,9 +1288,8 @@
   if (wilayaSelect) wilayaSelect.addEventListener('change', updateShipping);
   if (deliverySelect) deliverySelect.addEventListener('change', updateShipping);
 
-  // ===== Init (selection + cart) =====
+  // ===== Init =====
   function initFromForm(){
-    // cart from items_json if exists
     let items = [];
     if (itemsJsonInput && itemsJsonInput.value){
       try{
@@ -1373,15 +1298,11 @@
       }catch(e){}
     }
 
-    // if items_json empty: try to build from current selected variant (first in stock)
     if (!items.length && variants.length){
       const first = variants.find(v => Number(v.stock || 0) > 0) || variants[0];
-      if (first){
-        items = [{variant_id: Number(first.id), qty: 1}];
-      }
+      if (first) items = [{variant_id: Number(first.id), qty: 1}];
     }
 
-    // fill cart
     for (const it of items){
       if (!it || typeof it !== 'object') continue;
       const vid = Number(it.variant_id);
@@ -1396,7 +1317,6 @@
       if (qty > 0) cart.set(vid, qty);
     }
 
-    // set initial selection = first cart item
     const firstVid = cart.size ? Array.from(cart.keys())[0] : 0;
     const vv = variantsById.get(Number(firstVid)) || (variants.length ? variants[0] : null);
 
@@ -1406,13 +1326,9 @@
       selectedColor = String(vv.color || "");
       selectedSize = String(vv.size || "STD");
       setSelectedColor(selectedColor);
+      if (selectedSize && selectedSize !== "STD") setSelectedSize(selectedSize);
 
-      if (selectedSize && selectedSize !== "STD"){
-        setSelectedSize(selectedSize);
-      }
       updateSelectedVariantHint(vv);
-
-      // اعرض صورة اللون مباشرة عند البداية إن كانت موجودة
       if (vv.img) updateMainGalleryImage(String(vv.img));
     }
 
@@ -1420,13 +1336,11 @@
     updateShipping();
   }
 
-  // Init delivery default
   if (deliverySelect && deliverySelect.value) markActiveDelivery(String(deliverySelect.value));
   else setDelivery('OFFICE');
 
   initFromForm();
 
-  // منع إرسال بدون سلة (تحسين UX فقط - الباك-إند سيتحقق أيضًا)
   const orderForm = document.getElementById('orderForm');
   if (orderForm){
     orderForm.addEventListener('submit', (e) => {
