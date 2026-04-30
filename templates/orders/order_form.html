@@ -406,26 +406,7 @@
 
         <div class="lux-product-note">الدفع عند الاستلام فقط</div>
 
-        <div class="lux-shipping-box">
-          <div class="ship-row">
-            <span>سعر المنتجات</span>
-            <strong id="productSubtotalText">{{ product.final_price_dzd|dzd }}</strong>
-          </div>
-
-          <div class="ship-row">
-            <span>سعر التوصيل</span>
-            <strong id="shippingPriceText">اختاري الولاية ونوع التوصيل</strong>
-          </div>
-
-          <div class="ship-row">
-            <span>الإجمالي المتوقع</span>
-            <strong id="expectedTotalText">{{ product.final_price_dzd|dzd }}</strong>
-          </div>
-        </div>
-
-        <div id="shippingErrorBox" class="error-box" style="display:none; margin-top:16px;"></div>
       </div>
-    </div>
 
     <div class="lux-form-card">
       {% if form.non_field_errors %}
