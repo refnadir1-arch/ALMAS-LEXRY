@@ -476,6 +476,37 @@
           {% for e in form.qty.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
 
+        
+
+          {{ form.delivery_type }}
+          {% for e in form.delivery_type.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="lux-form-group">
+          <label>الاسم الكامل</label>
+          {{ form.full_name }}
+          {% for e in form.full_name.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="lux-form-group">
+          <label>رقم الهاتف</label>
+          {{ form.phone }}
+          {% for e in form.phone.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="lux-inline-grid two-cols">
+          <div class="lux-form-group">
+            <label>الولاية</label>
+            {{ form.wilaya_code }}
+            {% for e in form.wilaya_code.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="lux-form-group">
+            <label>البلدية</label>
+            {{ form.commune_name_ar }}
+            {% for e in form.commune_name_ar.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
         <div class="lux-form-group">
           <label>نوع التوصيل</label>
 
@@ -520,37 +551,14 @@
               <div class="delivery-price" id="homePrice">—</div>
             </button>
           </div>
-
-          {{ form.delivery_type }}
-          {% for e in form.delivery_type.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+               </div>
+        <div class="lux-shipping-box">
+          <div class="ship-row"><span>مجموع المنتجات</span><strong id="subtotalText">0 د.ج</strong></div>
+          <div class="ship-row"><span>سعر التوصيل</span><strong id="shippingPriceText">اختاري الولاية</strong></div>
+          <div class="ship-row"><span>الإجمالي النهائي</span><strong id="grandTotalText" style="color:var(--gold); font-size:1.5rem;">0 د.ج</strong></div>
         </div>
-
-        <div class="lux-form-group">
-          <label>الاسم الكامل</label>
-          {{ form.full_name }}
-          {% for e in form.full_name.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-        </div>
-
-        <div class="lux-form-group">
-          <label>رقم الهاتف</label>
-          {{ form.phone }}
-          {% for e in form.phone.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-        </div>
-
-        <div class="lux-inline-grid two-cols">
-          <div class="lux-form-group">
-            <label>الولاية</label>
-            <input id="wilayaSearch" class="lux-input" type="text" placeholder="ابحث عن ولايتك..." autocomplete="off">
-            {{ form.wilaya_code }}
-            {% for e in form.wilaya_code.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-          </div>
-
-          <div class="lux-form-group">
-            <label>البلدية</label>
-            {{ form.commune_name_ar }}
-            {% for e in form.commune_name_ar.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-          </div>
-        </div>
+      </div>
+    </div>
 
         <div class="lux-form-group">
           <label>ملاحظة</label>

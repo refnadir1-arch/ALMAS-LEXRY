@@ -1,10 +1,11 @@
-/* Pink background only for pages that include this file */
+/* Pink-Red background */
 html, body{
   background:
-    radial-gradient(circle at 12% 0%, rgba(255, 90, 190, .32), transparent 40%),
-    radial-gradient(circle at 88% 18%, rgba(255, 110, 210, .22), transparent 42%),
-    radial-gradient(circle at 50% 100%, rgba(255, 90, 190, .14), transparent 58%),
-    radial-gradient(circle at 70% 80%, rgba(212, 180, 120, .10), transparent 60%),
-    var(--bg);
+    radial-gradient(circle at 12% 0%, rgba(255, 60, 120, .35), transparent 40%),
+    radial-gradient(circle at 88% 18%, rgba(220, 30, 90, .28), transparent 42%),
+    radial-gradient(circle at 50% 100%, rgba(200, 20, 70, .18), transparent 58%),
+    radial-gradient(circle at 70% 80%, rgba(180, 10, 60, .15), transparent 60%),
+    #ffe6ef; /* خلفية وردي فاتح مائل للأحمر */
+    
   background-attachment: fixed;
 }
