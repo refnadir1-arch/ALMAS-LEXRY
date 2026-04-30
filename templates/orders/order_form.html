@@ -2,19 +2,409 @@
 {% load money %}
 {% load static %}
 
+{% block extra_head %}
+<style>
+  /* ===== Top Price Bar ===== */
+  .top-price-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 16px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+    margin: 14px 0 18px 0;
+  }
+  .top-price-bar span{ color: var(--muted); font-weight:800; }
+  .top-price-bar strong{ font-weight:900; color: var(--gold); font-size:18px; }
+
+  /* ===== Product Gallery (Slider) ===== */
+  .media-slider{
+    position:relative;
+    border-radius:18px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.12);
+  }
+  .media-track{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    scroll-behavior:smooth;
+    -webkit-overflow-scrolling:touch;
+  }
+  .media-track::-webkit-scrollbar{ height:0; }
+  .media-slide{
+    flex:0 0 100%;
+    scroll-snap-align:start;
+    position:relative;
+  }
+  .media-slide img{
+    width:100%;
+    height:auto;
+    display:block;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: rgba(0,0,0,.18);
+  }
+  .media-nav{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.14);
+    background: rgba(0,0,0,.35);
+    backdrop-filter: blur(6px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:.15s ease;
+    z-index:2;
+  }
+  .media-nav:hover{ background: rgba(0,0,0,.55); }
+  .media-nav:disabled{ opacity:.35; cursor:not-allowed; }
+  .media-nav svg{
+    width:22px; height:22px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .media-prev{ left:10px; }
+  .media-next{ right:10px; }
+
+  .media-thumbs{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding:10px 2px 0 2px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .media-thumbs::-webkit-scrollbar{ height:0; }
+  .thumb-btn{
+    flex: 0 0 auto;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    padding:0;
+    cursor:pointer;
+    overflow:hidden;
+    width:64px;
+    height:64px;
+    transition:.15s ease;
+  }
+  .thumb-btn:hover{ transform: translateY(-1px); border-color: rgba(212,180,120,.25); }
+  .thumb-btn.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); }
+  .thumb-btn img{
+    width:100%; height:100%;
+    object-fit:cover;
+    display:block;
+    background: rgba(0,0,0,.15);
+  }
+
+  /* ===== Delivery Cards ===== */
+  .delivery-cards{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:12px;
+    margin-top:10px;
+  }
+  @media (max-width: 900px){
+    .delivery-cards{ grid-template-columns:1fr; }
+  }
+  .delivery-card{
+    width:100%;
+    text-align:right;
+    border-radius:18px;
+    padding:16px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    cursor:pointer;
+    transition:.2s ease;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .delivery-card:hover{ transform:translateY(-2px); border-color: rgba(212,180,120,.25); }
+  .delivery-card.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); }
+  .delivery-card.is-disabled{ opacity:.45; cursor:not-allowed; }
+  .delivery-left{ display:flex; align-items:center; gap:12px; }
+  .delivery-icon{
+    width:46px;height:46px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    background: rgba(0,0,0,.18);
+    border:1px solid rgba(255,255,255,.10);
+    flex: 0 0 auto;
+    color: rgba(255,255,255,.95);
+  }
+  .delivery-icon svg{
+    width:24px; height:24px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity:.95;
+  }
+  .delivery-meta strong{ display:block; font-size:16px; font-weight:900; }
+  .delivery-meta span{ display:block; font-size:13px; color: var(--muted); margin-top:4px; }
+  .delivery-price{ font-weight:900; color: var(--gold); white-space:nowrap; }
+
+  /* نخفي select الحقيقي لأننا نتحكم به من خلال الكروت */
+  select[name="delivery_type"]{ display:none; }
+
+  /* ===== Variant Picker (Colors as images + Sizes as buttons) ===== */
+  .variant-picker{
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    border-radius:18px;
+    padding:14px;
+  }
+  .variant-section-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin:0 0 10px 0;
+  }
+  .variant-section-title strong{ font-weight:900; }
+  .variant-hint{ font-size:12px; color: var(--muted); }
+
+  .color-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap:10px;
+  }
+  .color-option{
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    padding:10px 10px 8px 10px;
+    cursor:pointer;
+    transition:.15s ease;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    min-height: 106px;
+  }
+  .color-option:hover{ transform: translateY(-1px); border-color: rgba(212,180,120,.25); }
+  .color-option.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); }
+  .color-option.is-disabled{ opacity:.45; cursor:not-allowed; }
+
+  .color-thumb{
+    width:64px;
+    height:64px;
+    border-radius:14px;
+    object-fit:cover;
+    display:block;
+    margin:0 auto;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.15);
+  }
+  .color-name{
+    font-size:12.5px;
+    font-weight:900;
+    line-height:1.2;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .size-wrap{ margin-top:14px; }
+  .size-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .size-btn{
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    padding:10px 14px;
+    cursor:pointer;
+    transition:.15s ease;
+    font-weight:900;
+    min-width: 64px;
+    text-align:center;
+  }
+  .size-btn:hover{ transform: translateY(-1px); border-color: rgba(212,180,120,.25); }
+  .size-btn.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); }
+  .size-btn.is-disabled{ opacity:.45; cursor:not-allowed; }
+
+  .selected-variant{
+    margin-top:12px;
+    font-size:13px;
+    color: var(--muted);
+  }
+  .selected-variant strong{ color: var(--text, #fff); }
+
+  /* Qty + Add to cart */
+  .picker-actions{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+    margin-top:12px;
+  }
+  @media (max-width: 900px){
+    .picker-actions{ grid-template-columns:1fr; }
+  }
+  .qty-note{ margin-top:6px; font-size:12px; color: var(--muted); }
+
+  /* Cart */
+  .cart-box{
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.12);
+    border-radius:18px;
+    padding:12px;
+    overflow:hidden;
+  }
+  .cart-empty{
+    padding:12px;
+    color: var(--muted);
+    font-weight:700;
+  }
+  .cart-table{
+    width:100%;
+    border-collapse: collapse;
+  }
+  .cart-table th, .cart-table td{
+    padding:10px 8px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    vertical-align: middle;
+    text-align:right;
+    font-size:13px;
+  }
+  .cart-table th{ color: var(--muted); font-weight:900; }
+  .cart-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .cart-thumb{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    object-fit:cover;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.15);
+    flex:0 0 auto;
+  }
+  .cart-title strong{ display:block; font-weight:900; }
+  .cart-title span{ display:block; margin-top:3px; color: var(--muted); font-size:12px; }
+
+  .cart-qty{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    white-space:nowrap;
+  }
+  .qty-btn{
+    width:34px;
+    height:34px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    cursor:pointer;
+    font-weight:900;
+  }
+  .qty-btn:disabled{ opacity:.35; cursor:not-allowed; }
+  .qty-input{
+    width:58px;
+    text-align:center;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    color: inherit;
+    padding:8px 10px;
+    outline:none;
+  }
+  .remove-btn{
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.02);
+    padding:8px 10px;
+    cursor:pointer;
+    font-weight:900;
+  }
+  .cart-msg{
+    margin-top:10px;
+    font-size:12.5px;
+    color: var(--muted);
+  }
+  .cart-msg.is-warn{ color: #ffb4d0; }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="section">
   <div class="section-head center-head">
     <h1>إتمام الطلب</h1>
-    <p class="muted">اختاري المقاس واللون، ثم املئي البيانات لإتمام الطلب</p>
+    <p class="muted">اختاري اللون والمقاس، ثم يمكنك إضافة أكثر من خيار إلى السلة وإتمام الطلب</p>
+  </div>
+
+  <div class="top-price-bar">
+    <span>سعر المنتجات</span>
+    <strong id="topSubtotalLive">{{ product.final_price_dzd|dzd }}</strong>
   </div>
 
   <div class="lux-order-layout">
     <div class="lux-product-card">
       <div class="lux-product-media">
-        {% if product.primary_image %}
-          <img src="{{ product.primary_image }}" alt="{{ product.name }}">
-        {% endif %}
+        <div class="media-slider" id="mediaSlider">
+          <div class="media-track" id="mediaTrack" aria-label="صور المنتج">
+
+            {% with primary=product.primary_image.url|default:product.primary_image %}
+              {% if primary %}
+                <div class="media-slide">
+                  <img
+                    id="mainProductImage"
+                    data-role="main"
+                    src="{{ primary }}"
+                    alt="{{ product.name|escape }}"
+                    loading="lazy">
+                </div>
+              {% else %}
+                <div class="media-slide">
+                  <img
+                    id="mainProductImage"
+                    data-role="main"
+                    src=""
+                    alt="{{ product.name|escape }}"
+                    loading="lazy">
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            {# صور إضافية إن كانت موجودة (حسب موديل الصور عندك) #}
+            {% for im in product.images.all %}
+              {% with u=im.image.url|default:im.image|default:im.url|default:im.file.url|default:im.file %}
+                {% if u %}
+                  <div class="media-slide">
+                    <img src="{{ u }}" alt="{{ product.name|escape }}" loading="lazy">
+                  </div>
+                {% endif %}
+              {% endwith %}
+            {% endfor %}
+
+          </div>
+
+          <button type="button" class="media-nav media-prev" id="mediaPrev" aria-label="الصورة السابقة">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button type="button" class="media-nav media-next" id="mediaNext" aria-label="الصورة التالية">
+            <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+
+        <div class="media-thumbs" id="mediaThumbs" aria-label="صور مصغرة"></div>
       </div>
 
       <div class="lux-product-content">
@@ -36,18 +426,13 @@
 
         <div class="lux-shipping-box">
           <div class="ship-row">
-            <span>سعر المنتج</span>
-            <strong id="productPriceText">{{ product.final_price_dzd|dzd }}</strong>
+            <span>سعر المنتجات</span>
+            <strong id="productSubtotalText">{{ product.final_price_dzd|dzd }}</strong>
           </div>
 
           <div class="ship-row">
             <span>سعر التوصيل</span>
             <strong id="shippingPriceText">اختاري الولاية ونوع التوصيل</strong>
-          </div>
-
-          <div class="ship-row">
-            <span>رسوم الإرجاع</span>
-            <strong id="returnFeeText">اختاري الولاية</strong>
           </div>
 
           <div class="ship-row">
@@ -69,37 +454,135 @@
         <div class="error-box">{{ shipping_error }}</div>
       {% endif %}
 
-      <form method="post" class="lux-form">
+      <form method="post" class="lux-form" id="orderForm">
         {% csrf_token %}
 
+        {# Hidden fields used by backend #}
+        {{ form.items_json }}
+        {{ form.variant_id }}
+
         <div class="lux-form-group">
-          <label>المقاس واللون</label>
-          <select name="variant_id" required class="lux-input">
-            <option value="">اختاري المقاس واللون</option>
-            {% for v in variants %}
-              <option value="{{ v.id }}"
-                {% if form.variant_id.value|stringformat:"s" == v.id|stringformat:"s" %}selected{% endif %}
-                {% if v.stock == 0 %}disabled{% endif %}>
-                {{ v.size }} — {{ v.color }} {% if v.stock > 0 %}(الكمية محدودة){% else %}(غير متوفر){% endif %}
-              </option>
-            {% endfor %}
-          </select>
+          <label>اختيار اللون والمقاس</label>
+
+          <div class="variant-picker">
+            <div class="variant-section-title">
+              <strong>الألوان</strong>
+              <span class="variant-hint">اضغطي على صورة اللون</span>
+            </div>
+
+            <div id="colorGrid" class="color-grid"></div>
+
+            <div id="sizeWrap" class="size-wrap" style="display:none;">
+              <div class="variant-section-title" style="margin-top:14px;">
+                <strong>المقاسات</strong>
+                <span class="variant-hint">اضغطي على المقاس</span>
+              </div>
+              <div id="sizeGrid" class="size-grid"></div>
+            </div>
+
+            <div id="selectedVariantHint" class="selected-variant" style="display:none;"></div>
+
+            <div class="picker-actions">
+              <div class="lux-form-group" style="margin:0;">
+                <label style="margin-bottom:8px; display:block;">الكمية (للإضافة)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="5"
+                  value="{{ form.qty.value|default:1 }}"
+                  class="lux-input"
+                  id="qtyInput">
+                <div class="qty-note">الحد الأقصى لكل لون/مقاس: 5</div>
+              </div>
+
+              <div class="lux-form-group" style="margin:0;">
+                <label style="margin-bottom:8px; display:block;">إضافة للسلة</label>
+                <button type="button" class="btn btn-outline w-full" id="addToCartBtn">إضافة إلى السلة</button>
+                <div class="qty-note">يمكنك إضافة أكثر من لون/مقاس</div>
+              </div>
+            </div>
+
+            <div class="lux-form-group" style="margin:14px 0 0 0;">
+              <label style="margin-bottom:8px; display:block;">سلة الطلب</label>
+              <div class="cart-box" id="cartBox"></div>
+              <div class="cart-msg" id="cartMsg" style="display:none;"></div>
+            </div>
+
+            <noscript>
+              <div style="margin-top:12px;">
+                <div class="field-error">لتعمل صفحة اختيار اللون/المقاس والسلة بشكل كامل، يرجى تفعيل JavaScript.</div>
+
+                <label style="display:block; margin-top:10px;">المقاس واللون</label>
+                <select name="variant_id" required class="lux-input">
+                  <option value="">اختاري المقاس واللون</option>
+                  {% for v in variants %}
+                    <option value="{{ v.id }}"
+                      {% if form.variant_id.value|stringformat:"s" == v.id|stringformat:"s" %}selected{% endif %}
+                      {% if v.stock == 0 %}disabled{% endif %}>
+                      {{ v.size }} — {{ v.color }} {% if v.stock > 0 %}(الكمية محدودة){% else %}(غير متوفر){% endif %}
+                    </option>
+                  {% endfor %}
+                </select>
+
+                <label style="display:block; margin-top:10px;">الكمية</label>
+                <input type="number" name="qty" min="1" max="5" value="{{ form.qty.value|default:1 }}" required class="lux-input">
+              </div>
+            </noscript>
+          </div>
+
           {% for e in form.variant_id.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          {% for e in form.qty.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
 
-        <div class="lux-inline-grid two-cols">
-          <div class="lux-form-group">
-            <label>الكمية</label>
-            <input type="number" name="qty" min="1" max="5" value="{{ form.qty.value|default:1 }}" required class="lux-input" id="qtyInput">
-            <small class="muted">الحد الأقصى: 5</small>
-            {% for e in form.qty.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        <div class="lux-form-group">
+          <label>نوع التوصيل</label>
+
+          <div class="delivery-cards" id="deliveryCards">
+            <button type="button" class="delivery-card" data-delivery="OFFICE" aria-pressed="false">
+              <div class="delivery-left">
+                <div class="delivery-icon" aria-hidden="true">
+                  {# Office / Building icon (professional outline) #}
+                  <svg viewBox="0 0 24 24">
+                    <path d="M3.5 21h17"/>
+                    <path d="M6 21V4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21"/>
+                    <path d="M9 7h2"/>
+                    <path d="M13 7h2"/>
+                    <path d="M9 10h2"/>
+                    <path d="M13 10h2"/>
+                    <path d="M9 13h2"/>
+                    <path d="M13 13h2"/>
+                    <path d="M10 21v-4h4v4"/>
+                  </svg>
+                </div>
+                <div class="delivery-meta">
+                  <strong>مكتب التوصيل</strong>
+                  <span>استلام من المكتب</span>
+                </div>
+              </div>
+              <div class="delivery-price" id="officePrice">—</div>
+            </button>
+
+            <button type="button" class="delivery-card" data-delivery="HOME" aria-pressed="false">
+              <div class="delivery-left">
+                <div class="delivery-icon" aria-hidden="true">
+                  {# Home icon (professional outline) #}
+                  <svg viewBox="0 0 24 24">
+                    <path d="M3 10.5L12 3l9 7.5"/>
+                    <path d="M5.5 10.5V21h13V10.5"/>
+                    <path d="M10 21v-6h4v6"/>
+                  </svg>
+                </div>
+                <div class="delivery-meta">
+                  <strong>التوصيل للمنزل</strong>
+                  <span>استلام عند باب المنزل</span>
+                </div>
+              </div>
+              <div class="delivery-price" id="homePrice">—</div>
+            </button>
           </div>
 
-          <div class="lux-form-group">
-            <label>نوع التوصيل</label>
-            {{ form.delivery_type }}
-            {% for e in form.delivery_type.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-          </div>
+          {{ form.delivery_type }}
+          {% for e in form.delivery_type.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
 
         <div class="lux-form-group">
@@ -117,6 +600,7 @@
         <div class="lux-inline-grid two-cols">
           <div class="lux-form-group">
             <label>الولاية</label>
+            <input id="wilayaSearch" class="lux-input" type="text" placeholder="ابحث عن ولايتك..." autocomplete="off">
             {{ form.wilaya_code }}
             {% for e in form.wilaya_code.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
           </div>
@@ -133,7 +617,7 @@
           {{ form.customer_note }}
         </div>
 
-        <button type="submit" class="btn btn-primary w-full large-btn">تأكيد الطلب</button>
+        <button type="submit" class="btn btn-primary w-full large-btn" id="submitBtn">تأكيد الطلب</button>
       </form>
     </div>
   </div>
@@ -141,5 +625,818 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/shipping-live.js' %}"></script>
+{{ variants_data|json_script:"variants-data" }}
+<script>
+(function(){
+  const variants = (() => {
+    try{
+      const el = document.getElementById('variants-data');
+      return JSON.parse(el ? el.textContent : "[]");
+    }catch(e){
+      return [];
+    }
+  })();
+
+  // ===== Gallery =====
+  const mediaTrack = document.getElementById('mediaTrack');
+  const mediaThumbs = document.getElementById('mediaThumbs');
+  const mediaPrev = document.getElementById('mediaPrev');
+  const mediaNext = document.getElementById('mediaNext');
+  const mainImg = document.getElementById('mainProductImage');
+
+  function getSlides(){
+    if (!mediaTrack) return [];
+    return Array.from(mediaTrack.querySelectorAll('.media-slide'));
+  }
+
+  function getSlideIndexFromScroll(){
+    const slides = getSlides();
+    if (!slides.length || !mediaTrack) return 0;
+    const w = mediaTrack.clientWidth || 1;
+    return Math.round(mediaTrack.scrollLeft / w);
+  }
+
+  function scrollToSlide(idx){
+    const slides = getSlides();
+    if (!slides.length || !mediaTrack) return;
+    const w = mediaTrack.clientWidth || 1;
+    const clamped = Math.max(0, Math.min(slides.length - 1, idx));
+    mediaTrack.scrollTo({ left: clamped * w, behavior: 'smooth' });
+    updateThumbActive(clamped);
+    updateNavState(clamped);
+  }
+
+  function updateNavState(idx){
+    const slides = getSlides();
+    const i = Math.max(0, Math.min(slides.length - 1, idx || 0));
+    if (mediaPrev) mediaPrev.disabled = (i <= 0);
+    if (mediaNext) mediaNext.disabled = (i >= slides.length - 1);
+  }
+
+  function updateThumbActive(idx){
+    if (!mediaThumbs) return;
+    const buttons = Array.from(mediaThumbs.querySelectorAll('.thumb-btn'));
+    buttons.forEach((b, i) => b.classList.toggle('is-active', i === idx));
+  }
+
+  function buildThumbs(){
+    if (!mediaThumbs || !mediaTrack) return;
+
+    mediaThumbs.innerHTML = '';
+    const slides = getSlides();
+
+    slides.forEach((slide, idx) => {
+      const img = slide.querySelector('img');
+      if (!img) return;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'thumb-btn';
+      btn.setAttribute('aria-label', 'عرض الصورة رقم ' + (idx + 1));
+
+      const t = document.createElement('img');
+      t.src = img.currentSrc || img.src || '';
+      t.alt = '';
+
+      btn.appendChild(t);
+      btn.addEventListener('click', () => scrollToSlide(idx));
+      mediaThumbs.appendChild(btn);
+    });
+
+    updateThumbActive(0);
+    updateNavState(0);
+  }
+
+  if (mediaPrev) mediaPrev.addEventListener('click', () => scrollToSlide(getSlideIndexFromScroll() - 1));
+  if (mediaNext) mediaNext.addEventListener('click', () => scrollToSlide(getSlideIndexFromScroll() + 1));
+  if (mediaTrack){
+    let t = null;
+    mediaTrack.addEventListener('scroll', () => {
+      window.clearTimeout(t);
+      t = window.setTimeout(() => {
+        const idx = getSlideIndexFromScroll();
+        updateThumbActive(idx);
+        updateNavState(idx);
+      }, 80);
+    });
+    window.addEventListener('resize', () => {
+      const idx = getSlideIndexFromScroll();
+      updateThumbActive(idx);
+      updateNavState(idx);
+    });
+  }
+  buildThumbs();
+
+  function updateMainGalleryImage(url){
+    if (!url) return;
+    if (mainImg){
+      mainImg.src = String(url);
+    }
+    // حدّث صورة thumbnail الأولى أيضًا إن وجدت
+    if (mediaThumbs){
+      const firstThumbImg = mediaThumbs.querySelector('.thumb-btn img');
+      if (firstThumbImg) firstThumbImg.src = String(url);
+    }
+  }
+
+  // ===== Variant Picker + Cart =====
+  const colorGrid = document.getElementById('colorGrid');
+  const sizeWrap = document.getElementById('sizeWrap');
+  const sizeGrid = document.getElementById('sizeGrid');
+  const selectedHint = document.getElementById('selectedVariantHint');
+
+  const itemsJsonInput = document.querySelector('input[name="items_json"]');
+  const variantIdInput = document.querySelector('input[name="variant_id"]');
+  const qtyInput = document.getElementById('qtyInput');
+
+  const cartBox = document.getElementById('cartBox');
+  const cartMsg = document.getElementById('cartMsg');
+  const addToCartBtn = document.getElementById('addToCartBtn');
+
+  const unitPriceEl = document.getElementById('productPrice');
+  const topSubtotalLive = document.getElementById('topSubtotalLive');
+  const productSubtotalText = document.getElementById('productSubtotalText');
+
+  const shippingPriceText = document.getElementById('shippingPriceText');
+  const expectedTotalText = document.getElementById('expectedTotalText');
+  const shippingErrorBox = document.getElementById('shippingErrorBox');
+
+  const wilayaSelect = document.querySelector('select[name="wilaya_code"]');
+  const wilayaSearch = document.getElementById('wilayaSearch');
+
+  const deliverySelect = document.querySelector('select[name="delivery_type"]');
+  const deliveryCards = Array.from(document.querySelectorAll('#deliveryCards [data-delivery]'));
+  const homePriceEl = document.getElementById('homePrice');
+  const officePriceEl = document.getElementById('officePrice');
+  const homeCard = document.querySelector('[data-delivery="HOME"]');
+  const officeCard = document.querySelector('[data-delivery="OFFICE"]');
+
+  const submitBtn = document.getElementById('submitBtn');
+
+  let selectedColor = null;
+  let selectedSize = null;
+
+  let lastShippingFee = 0;
+  let shippingByWilayaCache = {};
+
+  // cart: Map<variant_id, qty>
+  const cart = new Map();
+
+  const variantsById = (() => {
+    const m = new Map();
+    for (const v of variants){
+      m.set(Number(v.id), v);
+    }
+    return m;
+  })();
+
+  function formatDZD(value){
+    const num = Number(value || 0);
+    return num.toLocaleString("en-US") + " دج";
+  }
+
+  function setError(msg){
+    if (!shippingErrorBox) return;
+    shippingErrorBox.style.display = "block";
+    shippingErrorBox.textContent = msg || "حدث خطأ.";
+  }
+
+  function clearError(){
+    if (!shippingErrorBox) return;
+    shippingErrorBox.style.display = "none";
+    shippingErrorBox.textContent = "";
+  }
+
+  function showCartMsg(text, type){
+    if (!cartMsg) return;
+    if (!text){
+      cartMsg.style.display = "none";
+      cartMsg.textContent = "";
+      cartMsg.classList.remove('is-warn');
+      return;
+    }
+    cartMsg.style.display = "block";
+    cartMsg.textContent = text;
+    cartMsg.classList.toggle('is-warn', type === 'warn');
+  }
+
+  function clampQty(q){
+    let n = parseInt(q, 10);
+    if (Number.isNaN(n)) n = 1;
+    n = Math.max(1, Math.min(5, n));
+    return n;
+  }
+
+  function getUnitPrice(){
+    const p = unitPriceEl ? Number(unitPriceEl.dataset.price || 0) : 0;
+    return Number.isFinite(p) ? p : 0;
+  }
+
+  function cartTotalQty(){
+    let total = 0;
+    for (const q of cart.values()) total += Number(q || 0);
+    return total;
+  }
+
+  function updateTotals(){
+    const subtotal = getUnitPrice() * cartTotalQty();
+    const total = subtotal + Number(lastShippingFee || 0);
+
+    if (topSubtotalLive) topSubtotalLive.textContent = formatDZD(subtotal);
+    if (productSubtotalText) productSubtotalText.textContent = formatDZD(subtotal);
+    if (expectedTotalText) expectedTotalText.textContent = formatDZD(total);
+  }
+
+  function syncHiddenInputs(){
+    if (!itemsJsonInput) return;
+
+    const items = [];
+    for (const [vid, qty] of cart.entries()){
+      items.push({variant_id: Number(vid), qty: Number(qty)});
+    }
+
+    // ترتيب ثابت
+    items.sort((a,b) => a.variant_id - b.variant_id);
+
+    itemsJsonInput.value = items.length ? JSON.stringify(items) : "";
+
+    // للتوافق فقط (لا يعتمد عليه النظام الجديد)
+    if (variantIdInput){
+      variantIdInput.value = items.length ? String(items[0].variant_id) : "";
+    }
+  }
+
+  function renderCart(){
+    if (!cartBox) return;
+
+    const items = [];
+    for (const [vid, qty] of cart.entries()){
+      const v = variantsById.get(Number(vid));
+      if (!v) continue;
+      items.push({vid: Number(vid), qty: Number(qty), v});
+    }
+
+    if (!items.length){
+      cartBox.innerHTML = `<div class="cart-empty">السلة فارغة. اختاري لون/مقاس ثم اضغطي "إضافة إلى السلة".</div>`;
+      syncHiddenInputs();
+      updateTotals();
+      return;
+    }
+
+    const rows = items.map(({vid, qty, v}) => {
+      const sizeLabel = (String(v.size || "STD") === "STD") ? "مقاس موحد" : String(v.size);
+      const img = String(v.img || "");
+      const stock = Number(v.stock || 0);
+
+      const minusDisabled = qty <= 1 ? 'disabled' : '';
+      const plusDisabled = (qty >= 5 || qty >= stock) ? 'disabled' : '';
+
+      return `
+        <tr data-vid="${vid}">
+          <td>
+            <div class="cart-item">
+              <img class="cart-thumb" src="${img}" alt="">
+              <div class="cart-title">
+                <strong>${escapeHtml(String(v.color || ""))}</strong>
+                <span>${escapeHtml(sizeLabel)}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="cart-qty">
+              <button type="button" class="qty-btn" data-action="minus" ${minusDisabled} aria-label="نقص">-</button>
+              <input type="number" class="qty-input" data-action="input" min="1" max="5" value="${qty}">
+              <button type="button" class="qty-btn" data-action="plus" ${plusDisabled} aria-label="زيادة">+</button>
+            </div>
+          </td>
+          <td>
+            <button type="button" class="remove-btn" data-action="remove">حذف</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    cartBox.innerHTML = `
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th>الخيار</th>
+            <th style="width:160px;">الكمية</th>
+            <th style="width:90px;">إزالة</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+
+    // bind events
+    const tbody = cartBox.querySelector('tbody');
+    if (tbody){
+      tbody.addEventListener('click', (e) => {
+        const btn = e.target && e.target.closest('button');
+        if (!btn) return;
+
+        const tr = btn.closest('tr[data-vid]');
+        if (!tr) return;
+
+        const vid = Number(tr.getAttribute('data-vid'));
+        const v = variantsById.get(vid);
+        if (!v) return;
+
+        const stock = Number(v.stock || 0);
+        const current = Number(cart.get(vid) || 1);
+
+        const action = btn.getAttribute('data-action');
+        if (action === 'minus'){
+          const next = Math.max(1, current - 1);
+          cart.set(vid, next);
+          showCartMsg("", "");
+          renderCart();
+        }
+        if (action === 'plus'){
+          const next = Math.min(5, stock || 5, current + 1);
+          if (next === current){
+            showCartMsg("لا يمكن زيادة الكمية أكثر (نفاد/حد أقصى).", "warn");
+          }else{
+            showCartMsg("", "");
+          }
+          cart.set(vid, next);
+          renderCart();
+        }
+        if (action === 'remove'){
+          cart.delete(vid);
+          showCartMsg("", "");
+          renderCart();
+        }
+      });
+
+      tbody.addEventListener('input', (e) => {
+        const input = e.target && e.target.closest('input[data-action="input"]');
+        if (!input) return;
+
+        const tr = input.closest('tr[data-vid]');
+        if (!tr) return;
+
+        const vid = Number(tr.getAttribute('data-vid'));
+        const v = variantsById.get(vid);
+        if (!v) return;
+
+        const stock = Number(v.stock || 0);
+        const desired = clampQty(input.value);
+        const next = Math.min(desired, stock || desired);
+
+        if (next !== desired){
+          showCartMsg("تم تعديل الكمية لتناسب المخزون المتاح.", "warn");
+        }else{
+          showCartMsg("", "");
+        }
+
+        cart.set(vid, next);
+        renderCart();
+      });
+    }
+
+    syncHiddenInputs();
+    updateTotals();
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function groupByColor(){
+    const map = new Map();
+    for (const v of variants){
+      const color = String(v.color || "");
+      if (!color) continue;
+
+      const entry = map.get(color) || {color, img: "", anyStock: false};
+      if (!entry.img && v.img) entry.img = String(v.img);
+      entry.anyStock = entry.anyStock || (Number(v.stock || 0) > 0);
+      map.set(color, entry);
+    }
+    return Array.from(map.values()).sort((a,b) => a.color.localeCompare(b.color));
+  }
+
+  function uniqueSizesExcludingSTD(){
+    const s = new Set();
+    for (const v of variants){
+      const size = String(v.size || "STD");
+      if (size && size !== "STD") s.add(size);
+    }
+    return Array.from(s.values()).sort((a,b) => a.localeCompare(b));
+  }
+
+  function findVariant(color, size){
+    const c = String(color || "");
+    const s = String(size || "STD");
+
+    // مطابقة تامة
+    let exact = variants.find(v => String(v.color) === c && String(v.size || "STD") === s);
+    if (exact) return exact;
+
+    // fallback: أول متغير لنفس اللون متوفر
+    let any = variants.find(v => String(v.color) === c && Number(v.stock || 0) > 0);
+    if (any) return any;
+
+    // fallback أخير
+    return variants.find(v => String(v.color) === c) || null;
+  }
+
+  function renderColors(){
+    if (!colorGrid) return;
+
+    const colors = groupByColor();
+    colorGrid.innerHTML = "";
+
+    if (!colors.length){
+      const div = document.createElement('div');
+      div.className = "field-error";
+      div.textContent = "لا توجد ألوان/متغيرات متاحة لهذا المنتج.";
+      colorGrid.appendChild(div);
+      return;
+    }
+
+    for (const c of colors){
+      const btn = document.createElement('button');
+      btn.type = "button";
+      btn.className = "color-option";
+      btn.setAttribute("data-color", c.color);
+
+      if (!c.anyStock) btn.classList.add("is-disabled");
+
+      const img = document.createElement('img');
+      img.className = "color-thumb";
+      img.alt = c.color;
+      if (c.img) img.src = c.img;
+
+      const name = document.createElement('div');
+      name.className = "color-name";
+      name.textContent = c.color;
+
+      btn.appendChild(img);
+      btn.appendChild(name);
+
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains("is-disabled")) return;
+        setSelectedColor(c.color);
+      });
+
+      colorGrid.appendChild(btn);
+    }
+  }
+
+  function renderSizesForColor(color){
+    const sizes = uniqueSizesExcludingSTD();
+    const showSizes = sizes.length > 0;
+
+    if (!sizeWrap || !sizeGrid) return;
+
+    if (!showSizes){
+      sizeWrap.style.display = "none";
+      selectedSize = "STD";
+      return;
+    }
+
+    sizeWrap.style.display = "block";
+    sizeGrid.innerHTML = "";
+
+    const c = String(color || "");
+    for (const s of sizes){
+      const btn = document.createElement('button');
+      btn.type = "button";
+      btn.className = "size-btn";
+      btn.setAttribute("data-size", s);
+      btn.textContent = s;
+
+      const v = variants.find(x => String(x.color) === c && String(x.size || "STD") === s);
+      const available = v && Number(v.stock || 0) > 0;
+
+      if (!available) btn.classList.add("is-disabled");
+
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains("is-disabled")) return;
+        setSelectedSize(s);
+      });
+
+      sizeGrid.appendChild(btn);
+    }
+  }
+
+  function markActiveColor(color){
+    const buttons = Array.from(document.querySelectorAll('#colorGrid [data-color]'));
+    buttons.forEach(b => b.classList.toggle('is-active', b.getAttribute('data-color') === String(color)));
+  }
+
+  function markActiveSize(size){
+    const buttons = Array.from(document.querySelectorAll('#sizeGrid [data-size]'));
+    buttons.forEach(b => b.classList.toggle('is-active', b.getAttribute('data-size') === String(size)));
+  }
+
+  function updateSelectedVariantHint(v){
+    if (!selectedHint) return;
+    if (!v){
+      selectedHint.style.display = "block";
+      selectedHint.innerHTML = "لم يتم العثور على خيار مناسب.";
+      return;
+    }
+    selectedHint.style.display = "block";
+    const sizeLabel = (String(v.size || "STD") === "STD") ? "مقاس موحد" : String(v.size);
+    const stock = Number(v.stock || 0);
+    const stockText = stock > 0 ? `متوفر (المخزون: ${stock})` : "غير متوفر";
+    selectedHint.innerHTML = `الخيار الحالي: <strong>${escapeHtml(String(v.color))}</strong> — <strong>${escapeHtml(sizeLabel)}</strong> <span class="muted">(${stockText})</span>`;
+  }
+
+  function setSelectedColor(color){
+    selectedColor = String(color);
+    markActiveColor(selectedColor);
+
+    renderSizesForColor(selectedColor);
+
+    const sizes = uniqueSizesExcludingSTD();
+    if (sizes.length > 0){
+      const keep = variants.some(v => String(v.color) === selectedColor && String(v.size || "STD") === String(selectedSize) && Number(v.stock || 0) > 0);
+      if (!keep){
+        const firstAvailable = sizes.find(s => {
+          const vv = variants.find(v => String(v.color) === selectedColor && String(v.size || "STD") === String(s));
+          return vv && Number(vv.stock || 0) > 0;
+        });
+        selectedSize = firstAvailable || null;
+      }
+      if (selectedSize) markActiveSize(selectedSize);
+    }else{
+      selectedSize = "STD";
+    }
+
+    const v = findVariant(selectedColor, selectedSize || "STD");
+    updateSelectedVariantHint(v);
+
+    // تبديل الصورة الرئيسية حسب اللون
+    if (v && v.img){
+      updateMainGalleryImage(String(v.img));
+    }
+  }
+
+  function setSelectedSize(size){
+    selectedSize = String(size);
+    markActiveSize(selectedSize);
+
+    const v = findVariant(selectedColor, selectedSize || "STD");
+    updateSelectedVariantHint(v);
+
+    if (v && v.img){
+      updateMainGalleryImage(String(v.img));
+    }
+  }
+
+  function currentSelectedVariant(){
+    const v = findVariant(selectedColor, selectedSize || "STD");
+    return v || null;
+  }
+
+  function addCurrentSelectionToCart(){
+    const v = currentSelectedVariant();
+    if (!v){
+      showCartMsg("يرجى اختيار لون/مقاس متاح.", "warn");
+      return;
+    }
+    const stock = Number(v.stock || 0);
+    if (stock <= 0){
+      showCartMsg("هذا الخيار غير متوفر حاليًا.", "warn");
+      return;
+    }
+
+    const addQty = clampQty(qtyInput ? qtyInput.value : 1);
+    const existing = Number(cart.get(Number(v.id)) || 0);
+
+    const next = Math.min(5, stock, existing + addQty);
+    if (next <= existing){
+      showCartMsg("لا يمكن زيادة الكمية أكثر (نفاد/حد أقصى).", "warn");
+      return;
+    }
+
+    cart.set(Number(v.id), next);
+    showCartMsg("تمت الإضافة إلى السلة.", "");
+    renderCart();
+  }
+
+  if (addToCartBtn){
+    addToCartBtn.addEventListener('click', addCurrentSelectionToCart);
+  }
+
+  if (qtyInput){
+    qtyInput.addEventListener('input', () => {
+      qtyInput.value = String(clampQty(qtyInput.value));
+    });
+  }
+
+  // ===== Delivery UI =====
+  function markActiveDelivery(v){
+    deliveryCards.forEach(c => {
+      const active = (c.getAttribute('data-delivery') === v);
+      c.classList.toggle('is-active', active);
+      c.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function setDelivery(v){
+    if (!deliverySelect) return;
+    deliverySelect.value = v;
+    markActiveDelivery(v);
+    deliverySelect.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+
+  deliveryCards.forEach(card => {
+    card.addEventListener('click', () => {
+      if (card.classList.contains('is-disabled')) return;
+      setDelivery(card.getAttribute('data-delivery'));
+    });
+  });
+
+  async function fetchShippingInfo(wilayaCode){
+    const code = String(wilayaCode || "").trim();
+    if (!code) return null;
+
+    if (shippingByWilayaCache[code]) return shippingByWilayaCache[code];
+
+    const res = await fetch(`/api/shipping-info/?wilaya_code=${encodeURIComponent(code)}`);
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    if (!data || !data.ok) return null;
+
+    shippingByWilayaCache[code] = data;
+    return data;
+  }
+
+  async function updateShipping(){
+    if (!wilayaSelect || !deliverySelect) return;
+
+    const wilayaCode = String(wilayaSelect.value || "").trim();
+    const deliveryType = String(deliverySelect.value || "").trim();
+
+    clearError();
+    lastShippingFee = 0;
+
+    if (shippingPriceText) shippingPriceText.textContent = "اختاري الولاية ونوع التوصيل";
+
+    if (homePriceEl) homePriceEl.textContent = "—";
+    if (officePriceEl) officePriceEl.textContent = "—";
+    if (homeCard) homeCard.classList.remove("is-disabled");
+    if (officeCard) officeCard.classList.remove("is-disabled");
+
+    updateTotals();
+
+    if (!wilayaCode) return;
+
+    try{
+      const data = await fetchShippingInfo(wilayaCode);
+      if (!data){
+        setError("تعذر جلب أسعار التوصيل.");
+        return;
+      }
+
+      if (homePriceEl) homePriceEl.textContent = (data.home == null) ? "غير متاح" : formatDZD(data.home);
+      if (officePriceEl) officePriceEl.textContent = (data.office == null) ? "غير متاح" : formatDZD(data.office);
+
+      if (homeCard) homeCard.classList.toggle("is-disabled", data.home == null);
+      if (officeCard) officeCard.classList.toggle("is-disabled", data.office == null);
+
+      let shippingValue = null;
+      if (deliveryType === "HOME") shippingValue = data.home;
+      if (deliveryType === "OFFICE") shippingValue = data.office;
+
+      if (shippingValue == null){
+        if (shippingPriceText) shippingPriceText.textContent = "غير متاح";
+        setError("التوصيل غير متاح حاليًا لهذه الولاية بهذا النوع من التوصيل.");
+        lastShippingFee = 0;
+        updateTotals();
+        return;
+      }
+
+      lastShippingFee = Number(shippingValue || 0);
+      if (shippingPriceText) shippingPriceText.textContent = formatDZD(lastShippingFee);
+
+      updateTotals();
+    }catch(e){
+      setError("حدث خطأ أثناء حساب سعر التوصيل.");
+    }
+  }
+
+  // wilaya search filter (مع الحفاظ على الاختيار الحالي)
+  if (wilayaSearch && wilayaSelect){
+    const allOptions = Array.from(wilayaSelect.options).map(o => ({
+      value: o.value,
+      text: o.text,
+      disabled: o.disabled
+    }));
+
+    wilayaSearch.addEventListener('input', () => {
+      const q = wilayaSearch.value.trim().toLowerCase();
+      const currentValue = wilayaSelect.value;
+
+      wilayaSelect.innerHTML = '';
+
+      allOptions.forEach(o => {
+        if (!q || (o.text || '').toLowerCase().includes(q)) {
+          const opt = document.createElement('option');
+          opt.value = o.value;
+          opt.textContent = o.text;
+          opt.disabled = o.disabled;
+          wilayaSelect.appendChild(opt);
+        }
+      });
+
+      const stillExists = Array.from(wilayaSelect.options).some(op => op.value === currentValue);
+      if (stillExists) wilayaSelect.value = currentValue;
+
+      wilayaSelect.dispatchEvent(new Event('change', {bubbles:true}));
+    });
+  }
+
+  if (wilayaSelect) wilayaSelect.addEventListener('change', updateShipping);
+  if (deliverySelect) deliverySelect.addEventListener('change', updateShipping);
+
+  // ===== Init (selection + cart) =====
+  function initFromForm(){
+    // cart from items_json if exists
+    let items = [];
+    if (itemsJsonInput && itemsJsonInput.value){
+      try{
+        const parsed = JSON.parse(itemsJsonInput.value);
+        if (Array.isArray(parsed)) items = parsed;
+      }catch(e){}
+    }
+
+    // if items_json empty: try to build from current selected variant (first in stock)
+    if (!items.length && variants.length){
+      const first = variants.find(v => Number(v.stock || 0) > 0) || variants[0];
+      if (first){
+        items = [{variant_id: Number(first.id), qty: 1}];
+      }
+    }
+
+    // fill cart
+    for (const it of items){
+      if (!it || typeof it !== 'object') continue;
+      const vid = Number(it.variant_id);
+      let qty = clampQty(it.qty);
+      const v = variantsById.get(vid);
+      if (!v) continue;
+
+      const stock = Number(v.stock || 0);
+      if (stock <= 0) continue;
+
+      qty = Math.min(qty, stock, 5);
+      if (qty > 0) cart.set(vid, qty);
+    }
+
+    // set initial selection = first cart item
+    const firstVid = cart.size ? Array.from(cart.keys())[0] : 0;
+    const vv = variantsById.get(Number(firstVid)) || (variants.length ? variants[0] : null);
+
+    renderColors();
+
+    if (vv){
+      selectedColor = String(vv.color || "");
+      selectedSize = String(vv.size || "STD");
+      setSelectedColor(selectedColor);
+
+      if (selectedSize && selectedSize !== "STD"){
+        setSelectedSize(selectedSize);
+      }
+      updateSelectedVariantHint(vv);
+
+      // اعرض صورة اللون مباشرة عند البداية إن كانت موجودة
+      if (vv.img) updateMainGalleryImage(String(vv.img));
+    }
+
+    renderCart();
+    updateShipping();
+  }
+
+  // Init delivery default
+  if (deliverySelect && deliverySelect.value) markActiveDelivery(String(deliverySelect.value));
+  else setDelivery('OFFICE');
+
+  initFromForm();
+
+  // منع إرسال بدون سلة (تحسين UX فقط - الباك-إند سيتحقق أيضًا)
+  const orderForm = document.getElementById('orderForm');
+  if (orderForm){
+    orderForm.addEventListener('submit', (e) => {
+      syncHiddenInputs();
+      if (cart.size === 0){
+        e.preventDefault();
+        showCartMsg("السلة فارغة. يرجى إضافة خيار واحد على الأقل قبل تأكيد الطلب.", "warn");
+      }
+    });
+  }
+})();
+</script>
 {% endblock %}

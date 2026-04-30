@@ -1,12 +1,12 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
-from cloudinary.models import CloudinaryField  # 🔥 مهم
+from cloudinary.models import CloudinaryField
+
 
 # =========================
 # Category
 # =========================
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120, unique=True)
@@ -24,7 +24,6 @@ class Category(models.Model):
 # =========================
 # Product
 # =========================
-
 class Product(models.Model):
     category = models.ForeignKey(
         Category,
@@ -62,8 +61,8 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = slugify(self.name, allow_unicode=True)
-            slug = base_slug or "product"
+            base_slug = slugify(self.name, allow_unicode=True) or "product"
+            slug = base_slug
             counter = 1
 
             while Product.objects.exclude(pk=self.pk).filter(slug=slug).exists():
@@ -90,6 +89,9 @@ class Product(models.Model):
 
     @property
     def primary_image(self):
+        """
+        يرجّع رابط الصورة الأساسية كنص (string URL).
+        """
         try:
             img = self.images.filter(is_primary=True).first() or self.images.first()
             if img and img.image:
@@ -103,29 +105,25 @@ class Product(models.Model):
 
 
 # =========================
-# Product Images 🔥
+# Product Images
 # =========================
-
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
-
-    # 🔥 هنا التغيير المهم
     image = CloudinaryField("image")
-
     is_primary = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "صورة منتج"
         verbose_name_plural = "صور المنتجات"
+        ordering = ["-is_primary", "id"]
 
     def __str__(self):
         return f"صورة - {self.product.name}"
 
 
 # =========================
-# Variants 🔥
+# Variants
 # =========================
-
 class Variant(models.Model):
     SIZE_CHOICES = [
         ("STD", "مقاس موحد"),
@@ -149,7 +147,6 @@ class Variant(models.Model):
 
     color = models.CharField(max_length=50, verbose_name="اللون")
 
-    # 🔥 هنا أيضًا
     color_image = CloudinaryField(
         "image",
         null=True,

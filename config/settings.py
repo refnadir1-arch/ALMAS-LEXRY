@@ -1,22 +1,18 @@
 from pathlib import Path
 import os
+
 from dotenv import load_dotenv
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
 
-# =========================
-# Core
-# =========================
+# مهم: override=True حتى لو كان عندك CLOUDINARY_URL فاضي في ويندوز
+load_dotenv(dotenv_path=BASE_DIR / ".env", override=True)
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
 DEBUG = os.getenv("DEBUG", "0") == "1"
-ALLOWED_HOSTS = ["*"]
 
-# =========================
-# Applications
-# =========================
+ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -27,7 +23,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
 
-    # 🔥 Cloudinary
     "cloudinary",
     "cloudinary_storage",
 
@@ -36,10 +31,6 @@ INSTALLED_APPS = [
     "orders",
     "dashboard",
 ]
-
-# =========================
-# Middleware
-# =========================
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -73,10 +64,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# =========================
-# Database
-# =========================
-
 DATABASES = {
     "default": dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
@@ -84,39 +71,38 @@ DATABASES = {
     )
 }
 
-# =========================
-# Internationalization
-# =========================
-
 LANGUAGE_CODE = "ar"
 TIME_ZONE = "Africa/Algiers"
 USE_I18N = True
 USE_TZ = True
-
-# =========================
-# Static (WhiteNoise)
-# =========================
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # =========================
-# Cloudinary Setup 🔥
+# Cloudinary Setup
 # =========================
-
 import cloudinary
 
-cloudinary.config(
-    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.getenv("CLOUDINARY_API_KEY"),
-    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
-    secure=True,
-)
+CLOUDINARY_URL = (os.getenv("CLOUDINARY_URL") or "").strip()
+cloud_name = (os.getenv("CLOUDINARY_CLOUD_NAME") or "").strip()
+api_key = (os.getenv("CLOUDINARY_API_KEY") or "").strip()
+api_secret = (os.getenv("CLOUDINARY_API_SECRET") or "").strip()
 
-# =========================
-# Django 5 STORAGES (مهم جدًا)
-# =========================
+if CLOUDINARY_URL:
+    os.environ["CLOUDINARY_URL"] = CLOUDINARY_URL
+    cloudinary.config(secure=True)
+elif cloud_name and api_key and api_secret:
+    cloudinary.config(
+        cloud_name=cloud_name,
+        api_key=api_key,
+        api_secret=api_secret,
+        secure=True,
+    )
+else:
+    if DEBUG:
+        print("WARNING: Cloudinary is not configured. Uploads will fail (Must supply api_key).")
 
 STORAGES = {
     "default": {
@@ -127,10 +113,7 @@ STORAGES = {
     },
 }
 
-# ❌ احذف MEDIA_URL (ما تحتاجوش مع Cloudinary)
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 if not DEBUG:

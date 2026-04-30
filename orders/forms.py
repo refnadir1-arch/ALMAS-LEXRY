@@ -19,7 +19,7 @@ class DirectOrderForm(forms.Form):
     items_json = forms.CharField(required=False, widget=forms.HiddenInput())
 
     # توافق قديم (منتج واحد)
-    variant_id = forms.IntegerField(required=False, widget=forms.HiddenInput())
+    variant_id = forms.IntegerField(required=False, min_value=1, widget=forms.HiddenInput())
     qty = forms.IntegerField(min_value=1, max_value=5, required=False)
 
     full_name = forms.CharField(max_length=140, label="الاسم الكامل")
@@ -53,7 +53,18 @@ class DirectOrderForm(forms.Form):
         add_class("wilaya_code")
         add_class("commune_name_ar", {"placeholder": "أدخل/ي البلدية"})
         add_class("delivery_type")
-        self.fields["customer_note"].widget.attrs.update({"class": "lux-input", "placeholder": "ملاحظة اختيارية..."})
+
+        self.fields["customer_note"].widget.attrs.update({
+            "class": "lux-input",
+            "placeholder": "ملاحظة اختيارية..."
+        })
+
+    def clean_phone(self):
+        """
+        نحذف المسافات لتفادي اختلافات غير مقصودة في التخزين/التتبع.
+        """
+        phone = self.cleaned_data.get("phone", "")
+        return "".join(str(phone).split())
 
     def clean(self):
         cleaned = super().clean()
@@ -63,7 +74,7 @@ class DirectOrderForm(forms.Form):
         if items_json:
             try:
                 items = json.loads(items_json)
-            except Exception:
+            except json.JSONDecodeError:
                 raise forms.ValidationError("حدث خطأ في عناصر الطلب.")
 
             if not isinstance(items, list) or not items:
@@ -72,13 +83,22 @@ class DirectOrderForm(forms.Form):
             for it in items:
                 if not isinstance(it, dict):
                     raise forms.ValidationError("عناصر الطلب غير صالحة.")
-                if not str(it.get("variant_id", "")).isdigit():
-                    raise forms.ValidationError("خيار غير صالح.")
-                q = it.get("qty", 0)
+
+                if "variant_id" not in it or "qty" not in it:
+                    raise forms.ValidationError("عناصر الطلب غير مكتملة.")
+
                 try:
-                    q = int(q)
-                except Exception:
+                    vid = int(it.get("variant_id"))
+                except (TypeError, ValueError):
+                    raise forms.ValidationError("خيار غير صالح.")
+
+                try:
+                    q = int(it.get("qty"))
+                except (TypeError, ValueError):
                     raise forms.ValidationError("كمية غير صالحة.")
+
+                if vid <= 0:
+                    raise forms.ValidationError("خيار غير صالح.")
                 if q < 1 or q > 5:
                     raise forms.ValidationError("الكمية لكل خيار يجب أن تكون بين 1 و 5.")
 
@@ -107,3 +127,7 @@ class TrackOrderForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.fields["phone"].widget.attrs.update({"class": "lux-input", "placeholder": "رقم الهاتف"})
         self.fields["code"].widget.attrs.update({"class": "lux-input", "placeholder": "رمز الطلب"})
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get("phone", "")
+        return "".join(str(phone).split())

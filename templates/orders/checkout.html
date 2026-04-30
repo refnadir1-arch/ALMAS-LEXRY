@@ -4,6 +4,20 @@
 
 {% block extra_head %}
 <style>
+  .top-price-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 16px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+    margin: 14px 0 18px 0;
+  }
+  .top-price-bar span{ color: var(--muted); font-weight:700; }
+  .top-price-bar strong{ font-weight:900; color: var(--gold); font-size:18px; }
+
   .delivery-cards{
     display:grid;
     grid-template-columns:repeat(2, minmax(0, 1fr));
@@ -38,11 +52,13 @@
     display:flex; align-items:center; justify-content:center;
     font-size:20px; background: rgba(0,0,0,.18);
     border:1px solid rgba(255,255,255,.10);
+    flex: 0 0 auto;
   }
   .delivery-meta strong{ display:block; font-size:16px; font-weight:900; }
   .delivery-meta span{ display:block; font-size:13px; color: var(--muted); margin-top:4px; }
   .delivery-price{ font-weight:900; color: var(--gold); white-space:nowrap; }
 
+  /* نخفي select الحقيقي لأننا نتحكم به من خلال الكروت */
   select[name="delivery_type"]{ display:none; }
 </style>
 {% endblock %}
@@ -50,8 +66,14 @@
 {% block content %}
 <section class="section">
   <div class="section-head">
-    <h1>إتمام الطلب (سلة)</h1>
+    <h1>إتمام الطلب</h1>
     <a class="btn btn-outline" href="{% url 'cart_view' %}">رجوع للسلة</a>
+  </div>
+
+  <!-- سعر المنتج في أعلى الصفحة قبل أي شيء -->
+  <div class="top-price-bar">
+    <span>سعر المنتجات</span>
+    <strong id="topSubtotalText">{{ subtotal|dzd }}</strong>
   </div>
 
   <div class="lux-order-layout">
@@ -71,7 +93,11 @@
           {% for v, qty, unit_price, line_total in cart_items %}
           <tr>
             <td><strong>{{ v.product.name }}</strong></td>
-            <td>{{ v.color }} — {% if v.size and v.size != "STD" %}{{ v.size }}{% else %}مقاس موحد{% endif %}</td>
+            <td>
+              {{ v.color }}
+              —
+              {% if v.size and v.size != "STD" %}{{ v.size }}{% else %}مقاس موحد{% endif %}
+            </td>
             <td>{{ qty }}</td>
             <td>{{ line_total|dzd }}</td>
           </tr>
@@ -79,18 +105,15 @@
         </tbody>
       </table>
 
+      <!-- ملخص الأسعار (بدون رسوم الإرجاع) -->
       <div class="lux-shipping-box" style="margin-top:18px;">
         <div class="ship-row">
-          <span>مجموع المنتجات</span>
+          <span>سعر المنتجات</span>
           <strong id="subtotalText" data-subtotal="{{ subtotal }}">{{ subtotal|dzd }}</strong>
         </div>
         <div class="ship-row">
           <span>سعر التوصيل</span>
           <strong id="shippingPriceText">اختاري الولاية ونوع التوصيل</strong>
-        </div>
-        <div class="ship-row">
-          <span>رسوم الإرجاع</span>
-          <strong id="returnFeeText">اختاري الولاية</strong>
         </div>
         <div class="ship-row">
           <span>الإجمالي المتوقع</span>
@@ -116,7 +139,7 @@
           <label>نوع التوصيل</label>
 
           <div class="delivery-cards" id="deliveryCards">
-            <button type="button" class="delivery-card" data-delivery="OFFICE">
+            <button type="button" class="delivery-card" data-delivery="OFFICE" aria-pressed="false">
               <div class="delivery-left">
                 <div class="delivery-icon">🏢</div>
                 <div class="delivery-meta">
@@ -127,7 +150,7 @@
               <div class="delivery-price" id="officePrice">—</div>
             </button>
 
-            <button type="button" class="delivery-card" data-delivery="HOME">
+            <button type="button" class="delivery-card" data-delivery="HOME" aria-pressed="false">
               <div class="delivery-left">
                 <div class="delivery-icon">🏠</div>
                 <div class="delivery-meta">
@@ -190,7 +213,6 @@
   const subtotalEl = document.getElementById('subtotalText');
 
   const shippingPriceText = document.getElementById("shippingPriceText");
-  const returnFeeText = document.getElementById("returnFeeText");
   const expectedTotalText = document.getElementById("expectedTotalText");
   const shippingErrorBox = document.getElementById("shippingErrorBox");
 
@@ -217,7 +239,11 @@
   }
 
   function markActiveDelivery(v){
-    deliveryCards.forEach(c => c.classList.toggle('is-active', c.getAttribute('data-delivery') === v));
+    deliveryCards.forEach(c => {
+      const active = (c.getAttribute('data-delivery') === v);
+      c.classList.toggle('is-active', active);
+      c.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
   }
   function setDelivery(v){
     if (!deliverySelect) return;
@@ -243,7 +269,6 @@
     clearError();
 
     if (shippingPriceText) shippingPriceText.textContent = "اختاري الولاية ونوع التوصيل";
-    if (returnFeeText) returnFeeText.textContent = "اختاري الولاية";
     if (expectedTotalText) expectedTotalText.textContent = formatDZD(subtotal);
 
     if (homePriceEl) homePriceEl.textContent = "—";
@@ -255,6 +280,11 @@
 
     try{
       const res = await fetch(`/api/shipping-info/?wilaya_code=${encodeURIComponent(wilayaCode)}`);
+      if (!res.ok){
+        setError("تعذر جلب أسعار التوصيل (خطأ في الاتصال).");
+        return;
+      }
+
       const data = await res.json();
 
       if (!data.ok){
@@ -267,10 +297,6 @@
 
       if (homeCard) homeCard.classList.toggle("is-disabled", data.home == null);
       if (officeCard) officeCard.classList.toggle("is-disabled", data.office == null);
-
-      if (returnFeeText){
-        returnFeeText.textContent = (data.return_fee == null) ? "غير متاح" : formatDZD(data.return_fee);
-      }
 
       let shippingValue = null;
       if (deliveryType === "HOME") shippingValue = data.home;
@@ -297,15 +323,23 @@
   if (deliverySelect && deliverySelect.value) markActiveDelivery(deliverySelect.value);
   else setDelivery('OFFICE');
 
-  // wilaya search filter
+  // wilaya search filter (مع الحفاظ على الاختيار الحالي)
   const wilayaSearch = document.getElementById('wilayaSearch');
   if (wilayaSearch && wilayaSelect){
-    const allOptions = Array.from(wilayaSelect.options).map(o => ({value:o.value, text:o.text, disabled:o.disabled}));
+    const allOptions = Array.from(wilayaSelect.options).map(o => ({
+      value: o.value,
+      text: o.text,
+      disabled: o.disabled
+    }));
+
     wilayaSearch.addEventListener('input', () => {
       const q = wilayaSearch.value.trim().toLowerCase();
+      const currentValue = wilayaSelect.value;
+
       wilayaSelect.innerHTML = '';
+
       allOptions.forEach(o => {
-        if (!q || o.text.toLowerCase().includes(q)) {
+        if (!q || (o.text || '').toLowerCase().includes(q)) {
           const opt = document.createElement('option');
           opt.value = o.value;
           opt.textContent = o.text;
@@ -313,6 +347,11 @@
           wilayaSelect.appendChild(opt);
         }
       });
+
+      // حاول إعادة نفس الولاية إن كانت ما تزال موجودة بعد الفلترة
+      const stillExists = Array.from(wilayaSelect.options).some(op => op.value === currentValue);
+      if (stillExists) wilayaSelect.value = currentValue;
+
       wilayaSelect.dispatchEvent(new Event('change', {bubbles:true}));
     });
   }
