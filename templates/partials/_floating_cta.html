@@ -31,64 +31,34 @@
     color:#fff;
     font-weight:900;
     font-size:16px;
-    letter-spacing:.2px;
 
     background: linear-gradient(135deg, rgba(255,47,138,1), rgba(194,24,91,1));
-    box-shadow:
-      0 18px 40px rgba(0,0,0,.28),
-      0 0 0 0 rgba(255,47,138,.35);
+    box-shadow: 0 18px 40px rgba(0,0,0,.28);
 
-    transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease, filter .2s ease;
-    animation: ctaPulse 1.8s infinite;
+    transition: .2s ease;
     user-select:none;
   }
 
-  .floating-cta:hover{
-    transform: translateY(-2px);
-    box-shadow:
-      0 22px 46px rgba(0,0,0,.32),
-      0 0 0 10px rgba(255,47,138,.08);
-    filter: brightness(1.05);
-  }
-
   .floating-cta.is-order-mode{
-    /* في صفحة إتمام الطلب */
-    animation: ctaPulseSoft 1.8s infinite;
+    animation: pulseSoft 1.8s infinite;
   }
 
   .floating-cta.is-ready{
-    /* عندما تصبح البيانات مكتملة */
-    box-shadow:
-      0 22px 46px rgba(0,0,0,.32),
-      0 0 0 12px rgba(255,47,138,.10);
+    box-shadow: 0 22px 46px rgba(0,0,0,.32), 0 0 0 12px rgba(255,47,138,.10);
   }
 
-  .floating-cta__text{
-    line-height:1;
-  }
-
-  @keyframes ctaPulse{
-    0%   { box-shadow: 0 18px 40px rgba(0,0,0,.28), 0 0 0 0 rgba(255,47,138,.34); }
-    70%  { box-shadow: 0 18px 40px rgba(0,0,0,.28), 0 0 0 14px rgba(255,47,138,0); }
-    100% { box-shadow: 0 18px 40px rgba(0,0,0,.28), 0 0 0 0 rgba(255,47,138,0); }
-  }
-
-  @keyframes ctaPulseSoft{
+  @keyframes pulseSoft{
     0%   { box-shadow: 0 16px 36px rgba(0,0,0,.26), 0 0 0 0 rgba(255,47,138,.24); }
     70%  { box-shadow: 0 16px 36px rgba(0,0,0,.26), 0 0 0 12px rgba(255,47,138,0); }
     100% { box-shadow: 0 16px 36px rgba(0,0,0,.26), 0 0 0 0 rgba(255,47,138,0); }
   }
 
-  /* موبايل: نخليه بعرض شبه كامل */
-  @media (max-width: 768px){
+  @media (max-width:768px){
     .floating-cta{
       right:14px;
       left:14px;
       bottom:14px;
-      width:auto;
       text-align:center;
-      padding:14px 18px;
-      font-size:16px;
     }
   }
 </style>
@@ -99,107 +69,73 @@
   if (!cta) return;
 
   const textEl = cta.querySelector('.floating-cta__text');
-
   const defaultHref = cta.dataset.defaultHref || '/';
   const defaultText = cta.dataset.defaultText || 'اطلب الآن';
   const pendingText = cta.dataset.pendingText || 'اضغط للطلب';
   const confirmText = cta.dataset.confirmText || 'تأكيد الطلب';
 
-  // نعتبرها صفحة "إتمام الطلب" إذا وجدنا فورم lux-form + حقول الطلب الأساسية
+  // ✅ التعديل المهم هنا
   const form = document.querySelector('form.lux-form');
-  const fieldVariant = form ? form.querySelector('[name="variant_id"]') : null;
-  const fieldQty = form ? form.querySelector('[name="qty"]') : null;
-  const fieldFullName = form ? form.querySelector('[name="full_name"]') : null;
-  const fieldPhone = form ? form.querySelector('[name="phone"]') : null;
-  const fieldWilaya = form ? form.querySelector('[name="wilaya_code"]') : null;
-  const fieldCommune = form ? form.querySelector('[name="commune_name_ar"]') : null;
-  const fieldDelivery = form ? form.querySelector('[name="delivery_type"]') : null;
-
-  const isOrderPage = !!(form && fieldVariant && fieldQty && fieldFullName && fieldPhone && fieldWilaya && fieldCommune && fieldDelivery);
+  const isOrderPage = !!form;
 
   function setLabel(label){
     if (textEl) textEl.textContent = label;
-    else cta.textContent = label;
-  }
-
-  function isFilled(el){
-    if (!el) return false;
-    const v = (el.value || '').toString().trim();
-    return v.length > 0;
-  }
-
-  function isOrderReady(){
-    // variant_id (hidden) لازم يكون له قيمة
-    if (!isFilled(fieldVariant)) return false;
-
-    // qty لازم رقم >= 1
-    const q = Number((fieldQty && fieldQty.value) || 0);
-    if (!q || q < 1) return false;
-
-    // باقي الحقول
-    if (!isFilled(fieldFullName)) return false;
-    if (!isFilled(fieldPhone)) return false;
-    if (!isFilled(fieldWilaya)) return false;
-    if (!isFilled(fieldCommune)) return false;
-    if (!isFilled(fieldDelivery)) return false;
-
-    return true;
-  }
-
-  function refreshOrderState(){
-    const ready = isOrderReady();
-    cta.classList.toggle('is-ready', ready);
-    setLabel(ready ? confirmText : pendingText);
-  }
-
-  function scrollToFirstMissing(){
-    const orderFields = [fieldVariant, fieldQty, fieldFullName, fieldPhone, fieldWilaya, fieldCommune, fieldDelivery].filter(Boolean);
-    const missing = orderFields.find(f => !isFilled(f) || (f === fieldQty && Number(f.value || 0) < 1));
-    if (!missing) return;
-
-    // حاول نركز على عنصر ظاهر (الـ variant_id مخفي)
-    let target = missing;
-    if (missing === fieldVariant){
-      // إذا المتغير مخفي: انزل إلى أول قسم "اختيار المتغير"
-      const cards = document.getElementById('variantCards') || document.getElementById('colorCards');
-      if (cards) target = cards;
-    }
-
-    target.scrollIntoView({behavior:'smooth', block:'center'});
-    if (target.focus) target.focus({preventScroll:true});
   }
 
   if (!isOrderPage){
-    // الوضع العادي: رابط إلى المتجر
     setLabel(defaultText);
     cta.href = defaultHref;
-    cta.classList.remove('is-order-mode', 'is-ready');
     return;
   }
 
-  // الوضع الخاص بصفحة إتمام الطلب
+  // ✅ وضع صفحة الطلب
   cta.classList.add('is-order-mode');
   cta.href = '#';
-  refreshOrderState();
+  setLabel(pendingText);
 
-  // تحديث عند أي تغيير
-  const watch = [fieldVariant, fieldQty, fieldFullName, fieldPhone, fieldWilaya, fieldCommune, fieldDelivery].filter(Boolean);
-  watch.forEach(el => {
-    el.addEventListener('input', refreshOrderState);
-    el.addEventListener('change', refreshOrderState);
-  });
+  function isFilled(el){
+    if (!el) return false;
+    return (el.value || '').toString().trim().length > 0;
+  }
 
-  // عند الضغط: إذا جاهز -> submit, إذا لا -> نزّل للمكان المطلوب
-  cta.addEventListener('click', (e) => {
+  function isOrderReady(){
+    const required = form.querySelectorAll('input[required], select[required], textarea[required]');
+    for (let el of required){
+      if (!isFilled(el)) return false;
+    }
+    return true;
+  }
+
+  function scrollToFirstMissing(){
+    const required = form.querySelectorAll('input[required], select[required], textarea[required]');
+    for (let el of required){
+      if (!isFilled(el)){
+        el.scrollIntoView({behavior:'smooth', block:'center'});
+        el.focus();
+        break;
+      }
+    }
+  }
+
+  function refreshState(){
+    const ready = isOrderReady();
+    setLabel(ready ? confirmText : pendingText);
+    cta.classList.toggle('is-ready', ready);
+  }
+
+  form.addEventListener('input', refreshState);
+  form.addEventListener('change', refreshState);
+
+  cta.addEventListener('click', function(e){
     e.preventDefault();
     if (isOrderReady()){
-      // submit النموذج
       if (form.requestSubmit) form.requestSubmit();
       else form.submit();
     } else {
-      refreshOrderState();
+      refreshState();
       scrollToFirstMissing();
     }
   });
+
 })();
 </script>
