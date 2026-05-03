@@ -729,6 +729,7 @@
 {% block scripts %}
 {{ variants_data|json_script:"variants-data" }}
 <script>
+/* eslint-disable */
 (function(){
   const variants = (() => {
     try{
@@ -1490,5 +1491,6 @@
     });
   }
 })();
+/* eslint-enable */
 </script>
 {% endblock %}
