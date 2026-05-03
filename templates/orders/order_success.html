@@ -25,11 +25,20 @@
 {% block scripts %}
 {% if META_PIXEL_ID %}
 <script>
-  fbq('track', 'Lead', {
+  fbq('track', 'Purchase', {
+    content_ids: [
+      {% if order.items.exists %}
+        {% for item in order.items.all %}'{{ item.product.id }}'{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      {% else %}
+        '{{ order.product.id }}'
+      {% endif %}
+    ],
     content_name: '{{ order.product.name|escapejs }}',
     content_type: 'product',
-    value: '{{ order.total_dzd }}',
-    currency: 'DZD'
+    value: {{ order.computed_total_dzd|default:0 }},
+    currency: 'DZD',
+    num_items: {{ order.total_qty|default:order.qty|default:1 }}
   });
 </script>
 {% endif %}
