@@ -4,22 +4,364 @@
 
 {% block extra_head %}
 <style>
-  /* ===== Top Price Bar ===== */
-  .top-price-bar{
+  /* =========================
+     Black / Red Luxury Fog (نساء)
+     ========================= */
+
+  :root{
+    --lux-bg: #0b0b10;
+    --lux-surface: rgba(18, 18, 26, .78);
+    --lux-border: rgba(255,255,255,.10);
+
+    --lux-text: #f4efe6;
+    --lux-muted: rgba(244,239,230,.72);
+
+    --lux-gold: #d4b478;
+    --lux-accent: #ff2f6d;   /* أحمر مائل للوردي */
+    --lux-accent-2: #c2185b; /* أغمق */
+  }
+
+  /* Override أي خلفية وردية من base.html (pink_page) */
+  html, body{
+    background:
+      radial-gradient(circle at 12% 0%, rgba(255, 47, 109, .38), transparent 44%),
+      radial-gradient(circle at 88% 18%, rgba(255, 90, 150, .22), transparent 46%),
+      radial-gradient(circle at 50% 110%, rgba(212, 180, 120, .12), transparent 58%),
+      radial-gradient(circle at 28% 78%, rgba(255, 47, 109, .16), transparent 60%),
+      var(--lux-bg) !important;
+    background-attachment: fixed !important;
+    color: var(--lux-text);
+  }
+
+  .order-page-wrap{ max-width: 980px; margin: 0 auto; }
+
+  .order-steps-card{
+    position: relative;
+    overflow: hidden;
+    border:1px solid var(--lux-border);
+    background: var(--lux-surface);
+    border-radius:22px;
+    padding:18px;
+  }
+  .order-steps-card::before{
+    content:"";
+    position:absolute;
+    inset:-80px;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(255, 47, 109, .40), transparent 46%),
+      radial-gradient(circle at 90% 30%, rgba(255, 110, 170, .18), transparent 48%),
+      radial-gradient(circle at 70% 90%, rgba(212, 180, 120, .14), transparent 55%);
+    filter: blur(18px);
+    opacity:.85;
+    pointer-events:none;
+  }
+  .order-steps-card > *{ position:relative; z-index:1; }
+
+  .step-title{
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:12px;
+    margin: 0 0 10px 0;
+  }
+  .step-title h2{
+    margin:0;
+    font-size:16px;
+    font-weight:900;
+    letter-spacing:.2px;
+  }
+  .step-title .muted{ font-size:12px; color: var(--lux-muted); }
+
+  .divider-line{
+    height:1px;
+    background: rgba(255,255,255,.08);
+    margin: 16px 0;
+  }
+
+  /* Inputs inside order page (تحسين تناسق) */
+  .order-steps-card .lux-input{
+    background: rgba(10, 10, 14, .55) !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    color: var(--lux-text) !important;
+  }
+  .order-steps-card .lux-input::placeholder{ color: rgba(244,239,230,.55); }
+  .order-steps-card .lux-input:focus{
+    outline: none !important;
+    border-color: rgba(255, 47, 109, .55) !important;
+    box-shadow: 0 0 0 3px rgba(255, 47, 109, .16) !important;
+  }
+
+  /* Price row (سعر المنتج فقط + قبل التخفيض) */
+  .price-hero{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:14px;
     padding:14px 16px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.14);
+    margin: 12px 0 16px 0;
+  }
+  .price-hero .name{
+    font-weight:1000;
+    line-height:1.2;
+  }
+  .price-hero .prices{
+    display:flex;
+    align-items:baseline;
+    justify-content:flex-end;
+    gap:10px;
+    white-space:nowrap;
+  }
+  .price-hero .current{
+    font-weight:1000;
+    font-size:18px;
+    color: var(--lux-gold);
+  }
+  .price-hero .old{
+    opacity:.7;
+    text-decoration: line-through;
+    font-weight:900;
+  }
+  .price-hero .badge{
+    border:1px solid rgba(255,255,255,.12);
+    background: rgba(255, 47, 109, .14);
+    color: var(--lux-text);
+    padding:6px 10px;
+    border-radius:999px;
+    font-weight:1000;
+    font-size:12px;
+  }
+
+  /* Summary */
+  .summary-box{
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.12);
+    border-radius:18px;
+    padding:12px;
+    margin-top:14px;
+  }
+  .summary-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:8px 0;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .summary-row:last-child{ border-bottom:0; }
+  .summary-row span{ color: var(--lux-muted); font-weight:900; }
+  .summary-row strong{ font-weight:1000; }
+  .summary-row strong.total{ color: var(--lux-gold); font-size:18px; }
+
+  /* ===== Delivery Cards ===== */
+  .delivery-cards{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:12px;
+    margin-top:10px;
+  }
+  @media (max-width: 900px){
+    .delivery-cards{ grid-template-columns:1fr; }
+  }
+  .delivery-card{
+    width:100%;
+    text-align:right;
+    border-radius:18px;
+    padding:16px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.14);
+    cursor:pointer;
+    transition:.2s ease;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .delivery-card:hover{ transform:translateY(-2px); border-color: rgba(212,180,120,.25); }
+  .delivery-card.is-active{ border-color: var(--lux-accent); box-shadow:0 0 0 3px rgba(255,47,109,.14); }
+  .delivery-card.is-disabled{ opacity:.45; cursor:not-allowed; }
+  .delivery-left{ display:flex; align-items:center; gap:12px; }
+  .delivery-icon{
+    width:46px;height:46px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    background: rgba(0,0,0,.22);
+    border:1px solid rgba(255,255,255,.10);
+    flex: 0 0 auto;
+    color: rgba(255,255,255,.95);
+  }
+  .delivery-icon svg{
+    width:24px; height:24px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity:.95;
+  }
+  .delivery-meta strong{ display:block; font-size:16px; font-weight:1000; }
+  .delivery-meta span{ display:block; font-size:13px; color: var(--lux-muted); margin-top:4px; }
+  .delivery-price{ font-weight:1000; color: var(--lux-gold); white-space:nowrap; }
+
+  select[name="delivery_type"]{ display:none; }
+
+  /* ===== Variant Picker ===== */
+  .variant-picker{
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.10);
+    border-radius:18px;
+    padding:14px;
+  }
+  .variant-section-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin:0 0 10px 0;
+  }
+  .variant-section-title strong{ font-weight:1000; }
+  .variant-hint{ font-size:12px; color: var(--lux-muted); }
+
+  .color-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap:10px;
+  }
+  .color-option{
     border-radius:16px;
     border:1px solid rgba(255,255,255,.10);
-    background: rgba(255,255,255,.03);
-    margin: 14px 0 18px 0;
+    background: rgba(0,0,0,.14);
+    padding:10px 10px 8px 10px;
+    cursor:pointer;
+    transition:.15s ease;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    min-height: 106px;
   }
-  .top-price-bar span{ color: var(--muted); font-weight:800; }
-  .top-price-bar strong{ font-weight:900; color: var(--gold); font-size:18px; }
+  .color-option:hover{ transform: translateY(-1px); border-color: rgba(212,180,120,.25); }
+  .color-option.is-active{ border-color: var(--lux-accent); box-shadow:0 0 0 3px rgba(255,47,109,.14); }
+  .color-option.is-disabled{ opacity:.45; cursor:not-allowed; }
+  .color-thumb{
+    width:64px;
+    height:64px;
+    border-radius:14px;
+    object-fit:cover;
+    display:block;
+    margin:0 auto;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.15);
+  }
+  .color-name{
+    font-size:12.5px;
+    font-weight:1000;
+    line-height:1.2;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
 
-  /* ===== Product Gallery (Slider) ===== */
+  .size-wrap{ margin-top:14px; }
+  .size-grid{ display:flex; flex-wrap:wrap; gap:10px; }
+  .size-btn{
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.14);
+    padding:10px 14px;
+    cursor:pointer;
+    transition:.15s ease;
+    font-weight:1000;
+    min-width: 64px;
+    text-align:center;
+  }
+  .size-btn:hover{ transform: translateY(-1px); border-color: rgba(212,180,120,.25); }
+  .size-btn.is-active{ border-color: var(--lux-accent); box-shadow:0 0 0 3px rgba(255,47,109,.14); }
+  .size-btn.is-disabled{ opacity:.45; cursor:not-allowed; }
+
+  .selected-variant{ margin-top:12px; font-size:13px; color: var(--lux-muted); }
+  .selected-variant strong{ color: var(--lux-text); }
+
+  /* Cart */
+  .cart-box{
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.12);
+    border-radius:18px;
+    padding:12px;
+    overflow:hidden;
+  }
+  .cart-empty{ padding:12px; color: var(--lux-muted); font-weight:900; }
+  .cart-table{ width:100%; border-collapse: collapse; }
+  .cart-table th, .cart-table td{
+    padding:10px 8px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    vertical-align: middle;
+    text-align:right;
+    font-size:13px;
+  }
+  .cart-table th{ color: var(--lux-muted); font-weight:1000; }
+  .cart-item{ display:flex; align-items:center; gap:10px; }
+  .cart-thumb{
+    width:44px; height:44px; border-radius:14px;
+    object-fit:cover; border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.15); flex:0 0 auto;
+  }
+  .cart-title strong{ display:block; font-weight:1000; }
+  .cart-title span{ display:block; margin-top:3px; color: var(--lux-muted); font-size:12px; }
+
+  .cart-qty{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    white-space:nowrap;
+  }
+  .qty-btn{
+    width:34px; height:34px; border-radius:12px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.14);
+    cursor:pointer; font-weight:1000;
+    color: var(--lux-text);
+  }
+  .qty-btn:disabled{ opacity:.35; cursor:not-allowed; }
+  .qty-input{
+    width:58px; text-align:center; border-radius:12px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.14);
+    color: var(--lux-text); padding:8px 10px; outline:none;
+  }
+  .remove-btn{
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.14);
+    padding:8px 10px;
+    cursor:pointer;
+    font-weight:1000;
+    color: var(--lux-text);
+  }
+  .cart-msg{ margin-top:10px; font-size:12.5px; color: var(--lux-muted); }
+  .cart-msg.is-warn{ color: #ffb4d0; }
+
+  /* ===== Product Details (below submit) ===== */
+  .product-details-card{
+    position: relative;
+    overflow: hidden;
+  }
+  .product-details-card::before{
+    content:"";
+    position:absolute;
+    inset:-80px;
+    background:
+      radial-gradient(circle at 30% 0%, rgba(255,47,109,.26), transparent 48%),
+      radial-gradient(circle at 85% 50%, rgba(212,180,120,.10), transparent 58%);
+    filter: blur(18px);
+    opacity:.7;
+    pointer-events:none;
+  }
+  .product-details-card > *{ position:relative; z-index:1; }
+
+  /* ===== Gallery ===== */
   .media-slider{
     position:relative;
     border-radius:18px;
@@ -36,11 +378,7 @@
     direction:ltr;
   }
   .media-track::-webkit-scrollbar{ height:0; }
-  .media-slide{
-    flex:0 0 100%;
-    scroll-snap-align:start;
-    position:relative;
-  }
+  .media-slide{ flex:0 0 100%; scroll-snap-align:start; }
   .media-slide img{
     width:100%;
     height:auto;
@@ -92,7 +430,7 @@
     flex: 0 0 auto;
     border-radius:14px;
     border:1px solid rgba(255,255,255,.10);
-    background: rgba(255,255,255,.02);
+    background: rgba(0,0,0,.14);
     padding:0;
     cursor:pointer;
     overflow:hidden;
@@ -101,318 +439,44 @@
     transition:.15s ease;
   }
   .thumb-btn:hover{ transform: translateY(-1px); border-color: rgba(212,180,120,.25); }
-  .thumb-btn.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); }
+  .thumb-btn.is-active{ border-color: var(--lux-accent); box-shadow:0 0 0 3px rgba(255,47,109,.14); }
   .thumb-btn img{
     width:100%; height:100%;
     object-fit:cover;
     display:block;
     background: rgba(0,0,0,.15);
   }
-
-  /* ===== Delivery Cards ===== */
-  .delivery-cards{
-    display:grid;
-    grid-template-columns:repeat(2, minmax(0, 1fr));
-    gap:12px;
-    margin-top:10px;
-  }
-  @media (max-width: 900px){
-    .delivery-cards{ grid-template-columns:1fr; }
-  }
-  .delivery-card{
-    width:100%;
-    text-align:right;
-    border-radius:18px;
-    padding:16px;
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(255,255,255,.02);
-    cursor:pointer;
-    transition:.2s ease;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-  }
-  .delivery-card:hover{ transform:translateY(-2px); border-color: rgba(212,180,120,.25); }
-  .delivery-card.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); }
-  .delivery-card.is-disabled{ opacity:.45; cursor:not-allowed; }
-  .delivery-left{ display:flex; align-items:center; gap:12px; }
-  .delivery-icon{
-    width:46px;height:46px; border-radius:14px;
-    display:flex; align-items:center; justify-content:center;
-    background: rgba(0,0,0,.18);
-    border:1px solid rgba(255,255,255,.10);
-    flex: 0 0 auto;
-    color: rgba(255,255,255,.95);
-  }
-  .delivery-icon svg{
-    width:24px; height:24px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.9;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    opacity:.95;
-  }
-  .delivery-meta strong{ display:block; font-size:16px; font-weight:900; }
-  .delivery-meta span{ display:block; font-size:13px; color: var(--muted); margin-top:4px; }
-  .delivery-price{ font-weight:900; color: var(--gold); white-space:nowrap; }
-
-  select[name="delivery_type"]{ display:none; }
-
-  /* ===== Variant Picker (Colors as images + Sizes as buttons) ===== */
-  .variant-picker{
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(255,255,255,.02);
-    border-radius:18px;
-    padding:14px;
-  }
-  .variant-section-title{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    margin:0 0 10px 0;
-  }
-  .variant-section-title strong{ font-weight:900; }
-  .variant-hint{ font-size:12px; color: var(--muted); }
-
-  .color-grid{
-    display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-    gap:10px;
-  }
-  .color-option{
-    border-radius:16px;
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(255,255,255,.02);
-    padding:10px 10px 8px 10px;
-    cursor:pointer;
-    transition:.15s ease;
-    text-align:center;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    min-height: 106px;
-  }
-  .color-option:hover{ transform: translateY(-1px); border-color: rgba(212,180,120,.25); }
-  .color-option.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); }
-  .color-option.is-disabled{ opacity:.45; cursor:not-allowed; }
-
-  .color-thumb{
-    width:64px;
-    height:64px;
-    border-radius:14px;
-    object-fit:cover;
-    display:block;
-    margin:0 auto;
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(0,0,0,.15);
-  }
-  .color-name{
-    font-size:12.5px;
-    font-weight:900;
-    line-height:1.2;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-  }
-
-  .size-wrap{ margin-top:14px; }
-  .size-grid{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-  }
-  .size-btn{
-    border-radius:999px;
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(255,255,255,.02);
-    padding:10px 14px;
-    cursor:pointer;
-    transition:.15s ease;
-    font-weight:900;
-    min-width: 64px;
-    text-align:center;
-  }
-  .size-btn:hover{ transform: translateY(-1px); border-color: rgba(212,180,120,.25); }
-  .size-btn.is-active{ border-color:#ff2f8a; box-shadow:0 0 0 3px rgba(255,47,138,.12); }
-  .size-btn.is-disabled{ opacity:.45; cursor:not-allowed; }
-
-  .selected-variant{
-    margin-top:12px;
-    font-size:13px;
-    color: var(--muted);
-  }
-  .selected-variant strong{ color: var(--text, #fff); }
-
-  /* Qty + Add to cart */
-  .picker-actions{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:12px;
-    margin-top:12px;
-  }
-  @media (max-width: 900px){
-    .picker-actions{ grid-template-columns:1fr; }
-  }
-  .qty-note{ margin-top:6px; font-size:12px; color: var(--muted); }
-
-  /* Cart */
-  .cart-box{
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(0,0,0,.12);
-    border-radius:18px;
-    padding:12px;
-    overflow:hidden;
-  }
-  .cart-empty{
-    padding:12px;
-    color: var(--muted);
-    font-weight:700;
-  }
-  .cart-table{
-    width:100%;
-    border-collapse: collapse;
-  }
-  .cart-table th, .cart-table td{
-    padding:10px 8px;
-    border-bottom:1px solid rgba(255,255,255,.08);
-    vertical-align: middle;
-    text-align:right;
-    font-size:13px;
-  }
-  .cart-table th{ color: var(--muted); font-weight:900; }
-  .cart-item{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .cart-thumb{
-    width:44px;
-    height:44px;
-    border-radius:14px;
-    object-fit:cover;
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(0,0,0,.15);
-    flex:0 0 auto;
-  }
-  .cart-title strong{ display:block; font-weight:900; }
-  .cart-title span{ display:block; margin-top:3px; color: var(--muted); font-size:12px; }
-
-  .cart-qty{
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    gap:8px;
-    white-space:nowrap;
-  }
-  .qty-btn{
-    width:34px;
-    height:34px;
-    border-radius:12px;
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(255,255,255,.02);
-    cursor:pointer;
-    font-weight:900;
-  }
-  .qty-btn:disabled{ opacity:.35; cursor:not-allowed; }
-  .qty-input{
-    width:58px;
-    text-align:center;
-    border-radius:12px;
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(255,255,255,.02);
-    color: inherit;
-    padding:8px 10px;
-    outline:none;
-  }
-  .remove-btn{
-    border-radius:12px;
-    border:1px solid rgba(255,255,255,.10);
-    background: rgba(255,255,255,.02);
-    padding:8px 10px;
-    cursor:pointer;
-    font-weight:900;
-  }
-  .cart-msg{
-    margin-top:10px;
-    font-size:12.5px;
-    color: var(--muted);
-  }
-  .cart-msg.is-warn{ color: #ffb4d0; }
 </style>
 {% endblock %}
 
 {% block content %}
 <section class="section">
-  <div class="section-head center-head">
-    <h1>إتمام الطلب</h1>
-    <p class="muted">اختاري اللون والمقاس، ثم يمكنك إضافة أكثر من خيار إلى السلة وإتمام الطلب</p>
-  </div>
+  <div class="order-page-wrap">
+    <div class="section-head center-head">
+      <h1>إتمام الطلب</h1>
+      <p class="muted">املئي معلوماتك أولاً، ثم اختاري اللون/المقاس والتوصيل</p>
+    </div>
 
-  <div class="top-price-bar">
-    <span>سعر المنتجات</span>
-    <strong id="topSubtotalLive">{{ product.final_price_dzd|dzd }}</strong>
-  </div>
-
-  <div class="lux-order-layout">
-    <div class="lux-product-card">
-      <div class="lux-product-media">
-        <div class="media-slider" id="mediaSlider">
-          <div class="media-track" id="mediaTrack" aria-label="صور المنتج">
-            {% with imgs=product.images.all %}
-              {% if imgs|length %}
-                {% for im in imgs %}
-                  <div class="media-slide">
-                    <img
-                      {% if forloop.first %}id="mainProductImage" data-role="main"{% endif %}
-                      src="{{ im.image.url }}"
-                      alt="{{ product.name|escape }}"
-                      loading="lazy">
-                  </div>
-                {% endfor %}
-              {% else %}
-                <div class="media-slide">
-                  <img id="mainProductImage" data-role="main" src="" alt="{{ product.name|escape }}" loading="lazy">
-                </div>
-              {% endif %}
-            {% endwith %}
-          </div>
-
-          <button type="button" class="media-nav media-prev" id="mediaPrev" aria-label="الصورة السابقة">
-            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
-          <button type="button" class="media-nav media-next" id="mediaNext" aria-label="الصورة التالية">
-            <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
-          </button>
-        </div>
-
-        <div class="media-thumbs" id="mediaThumbs" aria-label="صور مصغرة"></div>
+    {# سعر المنتج فقط (سعر + قبل التخفيض) #}
+    <div class="price-hero">
+      <div>
+        <div class="name">{{ product.name }}</div>
+        <div class="muted" style="margin-top:6px;">الدفع عند الاستلام فقط</div>
       </div>
 
-      <div class="lux-product-content">
-        <h2>{{ product.name }}</h2>
-
-        <div class="lux-price-row">
-          <span class="lux-price-current" id="productPrice" data-price="{{ product.final_price_dzd }}">
-            {{ product.final_price_dzd|dzd }}
-          </span>
-          {% if product.has_discount %}
-            <span class="lux-price-old">{{ product.compare_at_price_dzd|dzd }}</span>
-            <span class="lux-badge discount-badge">-{{ product.discount_percent }}%</span>
-          {% endif %}
-        </div>
-
-        <div class="lux-product-note">الدفع عند الاستلام فقط</div>
-
+      <div class="prices">
+        <span class="current">{{ product.final_price_dzd|dzd }}</span>
+        {% if product.has_discount %}
+          <span class="old">{{ product.compare_at_price_dzd|dzd }}</span>
+          <span class="badge">-{{ product.discount_percent }}%</span>
+        {% endif %}
       </div>
+    </div>
 
-    <div class="lux-form-card">
+    <div class="order-steps-card">
       {% if form.non_field_errors %}
         <div class="error-box">{{ form.non_field_errors }}</div>
       {% endif %}
-
       {% if shipping_error %}
         <div class="error-box">{{ shipping_error }}</div>
       {% endif %}
@@ -423,9 +487,53 @@
         {{ form.items_json }}
         {{ form.variant_id }}
 
-        <div class="lux-form-group">
-          <label>اختيار اللون والمقاس</label>
+        {# ===== Step 1: Customer Info ===== #}
+        <div class="step-title">
+          <h2>1) معلومات الزبون</h2>
+          <span class="muted">الرجاء إدخال المعلومات بدقة</span>
+        </div>
 
+        <div class="lux-form-group">
+          <label>الاسم الكامل</label>
+          {{ form.full_name }}
+          {% for e in form.full_name.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="lux-form-group">
+          <label>رقم الهاتف</label>
+          {{ form.phone }}
+          {% for e in form.phone.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+
+        <div class="lux-inline-grid two-cols">
+          <div class="lux-form-group">
+            <label>الولاية</label>
+            <input id="wilayaSearch" class="lux-input" type="text" placeholder="ابحث عن ولايتك..." autocomplete="off">
+            {{ form.wilaya_code }}
+            {% for e in form.wilaya_code.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="lux-form-group">
+            <label>البلدية</label>
+            {{ form.commune_name_ar }}
+            {% for e in form.commune_name_ar.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        <div class="lux-form-group">
+          <label>ملاحظة</label>
+          {{ form.customer_note }}
+        </div>
+
+        <div class="divider-line"></div>
+
+        {# ===== Step 2: Variant + Cart ===== #}
+        <div class="step-title">
+          <h2>2) اللون والمقاس</h2>
+          <span class="muted">اختاري اللون/المقاس ثم أضيفي إلى السلة</span>
+        </div>
+
+        <div class="lux-form-group">
           <div class="variant-picker">
             <div class="variant-section-title">
               <strong>الألوان</strong>
@@ -456,12 +564,13 @@
                   class="lux-input"
                   id="qtyInput">
                 <div class="qty-note">الحد الأقصى لكل لون/مقاس: 5</div>
+                {% for e in form.qty.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
               </div>
 
               <div class="lux-form-group" style="margin:0;">
                 <label style="margin-bottom:8px; display:block;">إضافة للسلة</label>
                 <button type="button" class="btn btn-outline w-full" id="addToCartBtn">إضافة إلى السلة</button>
-                <div class="qty-note">يمكنك إضافة أكثر من لون/مقاس</div>
+                <div class="qty-note">ثم يمكنك إضافة لون/مقاس آخر</div>
               </div>
             </div>
 
@@ -473,43 +582,17 @@
           </div>
 
           {% for e in form.variant_id.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-          {% for e in form.qty.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
 
-        
+        <div class="divider-line"></div>
 
-          {{ form.delivery_type }}
-          {% for e in form.delivery_type.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-        </div>
-
-        <div class="lux-form-group">
-          <label>الاسم الكامل</label>
-          {{ form.full_name }}
-          {% for e in form.full_name.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        {# ===== Step 3: Delivery ===== #}
+        <div class="step-title">
+          <h2>3) نوع التوصيل</h2>
+          <span class="muted">اختاري نوع التوصيل لرؤية سعره</span>
         </div>
 
         <div class="lux-form-group">
-          <label>رقم الهاتف</label>
-          {{ form.phone }}
-          {% for e in form.phone.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-        </div>
-
-        <div class="lux-inline-grid two-cols">
-          <div class="lux-form-group">
-            <label>الولاية</label>
-            {{ form.wilaya_code }}
-            {% for e in form.wilaya_code.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-          </div>
-
-          <div class="lux-form-group">
-            <label>البلدية</label>
-            {{ form.commune_name_ar }}
-            {% for e in form.commune_name_ar.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
-          </div>
-        </div>
-        <div class="lux-form-group">
-          <label>نوع التوصيل</label>
-
           <div class="delivery-cards" id="deliveryCards">
             <button type="button" class="delivery-card" data-delivery="OFFICE" aria-pressed="false">
               <div class="delivery-left">
@@ -551,22 +634,93 @@
               <div class="delivery-price" id="homePrice">—</div>
             </button>
           </div>
-               </div>
-        <div class="lux-shipping-box">
-          <div class="ship-row"><span>مجموع المنتجات</span><strong id="subtotalText">0 د.ج</strong></div>
-          <div class="ship-row"><span>سعر التوصيل</span><strong id="shippingPriceText">اختاري الولاية</strong></div>
-          <div class="ship-row"><span>الإجمالي النهائي</span><strong id="grandTotalText" style="color:var(--gold); font-size:1.5rem;">0 د.ج</strong></div>
-        </div>
-      </div>
-    </div>
 
-        <div class="lux-form-group">
-          <label>ملاحظة</label>
-          {{ form.customer_note }}
+          {{ form.delivery_type }}
+          {% for e in form.delivery_type.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
 
+        <div id="shippingErrorBox" class="error-box" style="display:none; margin-top:10px;"></div>
+
+        <div class="summary-box">
+          <div class="summary-row">
+            <span>المجموع (بدون توصيل)</span>
+            <strong id="orderSubtotalText">{{ product.final_price_dzd|dzd }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>سعر التوصيل</span>
+            <strong id="shippingPriceText">اختاري الولاية ونوع التوصيل</strong>
+          </div>
+          <div class="summary-row">
+            <span>الإجمالي المتوقع</span>
+            <strong class="total" id="expectedTotalText">{{ product.final_price_dzd|dzd }}</strong>
+          </div>
+        </div>
+
+        <div class="divider-line"></div>
         <button type="submit" class="btn btn-primary w-full large-btn" id="submitBtn">تأكيد الطلب</button>
       </form>
+    </div>
+
+    {# ===== Product Details (after submit) ===== #}
+    <div class="product-details-card" id="productDetails">
+      <div class="step-title">
+        <h2>صور المنتج ووصفه</h2>
+        <span class="muted">للتأكد قبل تأكيد الطلب</span>
+      </div>
+
+      <div class="media-slider" id="mediaSlider">
+        <div class="media-track" id="mediaTrack" aria-label="صور المنتج">
+          {% with imgs=product.images.all %}
+            {% if imgs|length %}
+              {% for im in imgs %}
+                <div class="media-slide">
+                  <img
+                    {% if forloop.first %}id="mainProductImage" data-role="main"{% endif %}
+                    src="{{ im.image.url }}"
+                    alt="{{ product.name|escape }}"
+                    loading="lazy">
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="media-slide">
+                <img id="mainProductImage" data-role="main" src="" alt="{{ product.name|escape }}" loading="lazy">
+              </div>
+            {% endif %}
+          {% endwith %}
+        </div>
+
+        <button type="button" class="media-nav media-prev" id="mediaPrev" aria-label="الصورة السابقة">
+          <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button type="button" class="media-nav media-next" id="mediaNext" aria-label="الصورة التالية">
+          <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+
+      <div class="media-thumbs" id="mediaThumbs" aria-label="صور مصغرة"></div>
+
+      {% if product.description %}
+        <div style="margin-top:12px; background: rgba(0,0,0,.12); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px;">
+          {{ product.description|linebreaks }}
+        </div>
+      {% endif %}
+
+      {% if product.video_url %}
+        <div style="margin-top:14px;">
+          <div class="step-title" style="margin-bottom:10px;">
+            <h2 style="font-size:15px;">فيديو المنتج</h2>
+            <span class="muted"></span>
+          </div>
+          <div style="border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.10);">
+            <iframe
+              src="{{ product.video_url }}"
+              title="{{ product.name|escape }}"
+              frameborder="0"
+              allowfullscreen
+              style="width:100%; height:320px; display:block;"></iframe>
+          </div>
+        </div>
+      {% endif %}
     </div>
   </div>
 </section>
@@ -596,14 +750,12 @@
     if (!mediaTrack) return [];
     return Array.from(mediaTrack.querySelectorAll('.media-slide'));
   }
-
   function getSlideIndexFromScroll(){
     const slides = getSlides();
     if (!slides.length || !mediaTrack) return 0;
     const w = mediaTrack.clientWidth || 1;
     return Math.round(mediaTrack.scrollLeft / w);
   }
-
   function updateNavState(idx){
     const slides = getSlides();
     const i = Math.max(0, Math.min(slides.length - 1, idx || 0));
@@ -611,13 +763,11 @@
     if (mediaPrev) mediaPrev.disabled = onlyOne || (i <= 0);
     if (mediaNext) mediaNext.disabled = onlyOne || (i >= slides.length - 1);
   }
-
   function updateThumbActive(idx){
     if (!mediaThumbs) return;
     const buttons = Array.from(mediaThumbs.querySelectorAll('.thumb-btn'));
     buttons.forEach((b, i) => b.classList.toggle('is-active', i === idx));
   }
-
   function scrollToSlide(idx){
     const slides = getSlides();
     if (!slides.length || !mediaTrack) return;
@@ -627,16 +777,16 @@
     updateThumbActive(clamped);
     updateNavState(clamped);
   }
-
   function buildThumbs(){
     if (!mediaThumbs || !mediaTrack) return;
-
     mediaThumbs.innerHTML = '';
     const slides = getSlides();
 
     slides.forEach((slide, idx) => {
       const img = slide.querySelector('img');
       if (!img) return;
+      const src = img.currentSrc || img.src || '';
+      if (!src) return;
 
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -644,10 +794,10 @@
       btn.setAttribute('aria-label', 'عرض الصورة رقم ' + (idx + 1));
 
       const t = document.createElement('img');
-      t.src = img.currentSrc || img.src || '';
+      t.src = src;
       t.alt = '';
-
       btn.appendChild(t);
+
       btn.addEventListener('click', () => scrollToSlide(idx));
       mediaThumbs.appendChild(btn);
     });
@@ -658,6 +808,7 @@
 
   if (mediaPrev) mediaPrev.addEventListener('click', () => scrollToSlide(getSlideIndexFromScroll() - 1));
   if (mediaNext) mediaNext.addEventListener('click', () => scrollToSlide(getSlideIndexFromScroll() + 1));
+
   if (mediaTrack){
     let t = null;
     mediaTrack.addEventListener('scroll', () => {
@@ -668,12 +819,14 @@
         updateNavState(idx);
       }, 80);
     });
+
     window.addEventListener('resize', () => {
       const idx = getSlideIndexFromScroll();
       updateThumbActive(idx);
       updateNavState(idx);
     });
   }
+
   buildThumbs();
 
   function updateMainGalleryImage(url){
@@ -701,10 +854,7 @@
   const cartMsg = document.getElementById('cartMsg');
   const addToCartBtn = document.getElementById('addToCartBtn');
 
-  const unitPriceEl = document.getElementById('productPrice');
-  const topSubtotalLive = document.getElementById('topSubtotalLive');
-  const productSubtotalText = document.getElementById('productSubtotalText');
-
+  const orderSubtotalText = document.getElementById('orderSubtotalText');
   const shippingPriceText = document.getElementById('shippingPriceText');
   const expectedTotalText = document.getElementById('expectedTotalText');
   const shippingErrorBox = document.getElementById('shippingErrorBox');
@@ -743,7 +893,6 @@
     shippingErrorBox.style.display = "block";
     shippingErrorBox.textContent = msg || "حدث خطأ.";
   }
-
   function clearError(){
     if (!shippingErrorBox) return;
     shippingErrorBox.style.display = "none";
@@ -769,10 +918,8 @@
     return Math.max(1, Math.min(5, n));
   }
 
-  function getUnitPrice(){
-    const p = unitPriceEl ? Number(unitPriceEl.dataset.price || 0) : 0;
-    return Number.isFinite(p) ? p : 0;
-  }
+  // سعر القطعة = سعر المنتج النهائي
+  const UNIT_PRICE = Number({{ product.final_price_dzd|default:0 }});
 
   function cartTotalQty(){
     let total = 0;
@@ -781,11 +928,10 @@
   }
 
   function updateTotals(){
-    const subtotal = getUnitPrice() * cartTotalQty();
+    const subtotal = (Number.isFinite(UNIT_PRICE) ? UNIT_PRICE : 0) * cartTotalQty();
     const total = subtotal + Number(lastShippingFee || 0);
 
-    if (topSubtotalLive) topSubtotalLive.textContent = formatDZD(subtotal);
-    if (productSubtotalText) productSubtotalText.textContent = formatDZD(subtotal);
+    if (orderSubtotalText) orderSubtotalText.textContent = formatDZD(subtotal);
     if (expectedTotalText) expectedTotalText.textContent = formatDZD(total);
   }
 
@@ -800,6 +946,7 @@
 
     itemsJsonInput.value = items.length ? JSON.stringify(items) : "";
 
+    // للتوافق فقط
     if (variantIdInput){
       variantIdInput.value = items.length ? String(items[0].variant_id) : "";
     }
@@ -1177,6 +1324,7 @@
   async function fetchShippingInfo(wilayaCode){
     const code = String(wilayaCode || "").trim();
     if (!code) return null;
+
     if (shippingByWilayaCache[code]) return shippingByWilayaCache[code];
 
     const res = await fetch(`/api/shipping-info/?wilaya_code=${encodeURIComponent(code)}`);
@@ -1323,6 +1471,7 @@
 
     renderCart();
     updateShipping();
+    updateTotals();
   }
 
   if (deliverySelect && deliverySelect.value) markActiveDelivery(String(deliverySelect.value));
